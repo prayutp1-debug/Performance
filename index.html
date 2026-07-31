@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แดชบอร์ดบริหารข้อมูลโรงงานแฟรนไชส์ (FC)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0A1120; --panel:#131D33; --panel-hi:#182647; --border:rgba(255,255,255,.08);
+    --text:#E8ECF6; --text-soft:#8993AC; --text-dim:#5D6B8A;
+    --teal:#2FD9C4; --blue:#4C8DFF; --orange:#FF7A59; --yellow:#FFC94A; --green:#33D17A; --red:#FF5A6E; --purple:#9B7BFF;
+    --ok:#33D17A; --ok-bg:rgba(51,209,122,.14);
+    --warn:#FFC94A; --warn-bg:rgba(255,201,74,.14);
+    --crit:#FF5A6E; --crit-bg:rgba(255,90,110,.14);
+    --other:#4C8DFF; --other-bg:rgba(76,141,255,.14);
+    --none:#5D6B8A; --none-bg:rgba(93,107,138,.16);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:
+    radial-gradient(1100px 500px at 15% -10%, rgba(76,141,255,.14), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(155,123,255,.10), transparent 55%),
+    var(--bg);
+    color:var(--text);font-family:'Sarabun',sans-serif;font-size:14.5px;line-height:1.5;min-height:100vh;}
+  h1,h2,h3,h4,.display{font-family:'Kanit',sans-serif;}
+  .accentbar{height:4px;width:100%;background:linear-gradient(90deg,var(--teal),var(--blue),var(--purple));}
+
+  header.top{padding:24px 32px 20px;}
+  .top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;}
+  .brand h1{margin:0 0 4px;font-size:22px;font-weight:600;letter-spacing:.2px;}
+  .brand p{margin:0;color:var(--text-soft);font-size:13.5px;max-width:660px;}
+  .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .btn{border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:600;font-size:13.5px;padding:10px 16px;border-radius:8px;display:inline-flex;align-items:center;gap:7px;transition:filter .15s,transform .1s;}
+  .btn:active{transform:translateY(1px);}
+  .btn-accent{background:linear-gradient(135deg,var(--teal),var(--blue));color:#071018;}
+  .btn-accent:hover{filter:brightness(1.08);}
+  .btn-ghost{background:var(--panel-hi);color:var(--text);border:1px solid var(--border);}
+  .btn-ghost:hover{background:#1D2C52;}
+  .btn-quiet{background:transparent;color:var(--text-soft);border:1px solid var(--border);}
+  .btn-quiet:hover{color:var(--text);border-color:rgba(255,255,255,.25);}
+
+  main{max-width:1440px;margin:0 auto;padding:10px 32px 60px;}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+  .sources{padding:16px 18px;margin-bottom:20px;}
+  .sources-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+  .sources-head h2{font-size:15px;margin:0;}
+  .sources-head .hint{font-size:12px;color:var(--text-soft);}
+  .source-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;}
+  .source-card{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--panel-hi);}
+  .source-card .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--none);box-shadow:0 0 0 3px rgba(93,107,138,.15);}
+  .source-card.loaded .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(51,209,122,.18);}
+  .source-card .label{font-weight:600;font-size:12.5px;}
+  .source-card .meta{font-size:11px;color:var(--text-soft);margin-top:4px;}
+
+  .filter-bar{padding:14px 16px;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .filter-bar input[type=text],.filter-bar select{font-family:'Sarabun',sans-serif;font-size:13.5px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel-hi);color:var(--text);}
+  .filter-bar input[type=text]::placeholder{color:var(--text-dim);}
+  .filter-bar input[type=text]{flex:1;min-width:220px;}
+  .flabel{font-size:11px;color:var(--text-soft);display:block;margin-bottom:3px;}
+  .fgroup{display:flex;flex-direction:column;}
+  .spacer{flex:1;}
+
+  .msel{position:relative;}
+  .msel-btn{font-family:'Sarabun',sans-serif;font-size:13.5px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel-hi);color:var(--text);cursor:pointer;min-width:190px;text-align:left;}
+  .msel-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--panel-hi);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.45);padding:10px;z-index:30;min-width:230px;}
+  .msel-panel.show{display:block;}
+  .msel-panel label{display:flex;align-items:center;gap:8px;padding:6px 6px;font-size:13px;cursor:pointer;border-radius:6px;color:var(--text);}
+  .msel-panel label:hover{background:rgba(255,255,255,.05);}
+  .msel-panel select{width:100%;font-family:'Sarabun',sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--text);}
+
+  .tabs{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap;}
+  .tab-btn{font-family:'Kanit',sans-serif;font-weight:500;font-size:13.5px;background:transparent;border:1px solid var(--border);padding:9px 18px;cursor:pointer;color:var(--text-soft);border-radius:9px;}
+  .tab-btn.active{color:#071018;background:linear-gradient(135deg,var(--teal),var(--blue));font-weight:600;border-color:transparent;}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
+  @media(max-width:1050px){.layout{grid-template-columns:1fr;}}
+
+  .gauge-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+  @media(max-width:750px){.gauge-row{grid-template-columns:1fr;}}
+  .gauge-card{padding:16px;text-align:center;}
+  .gauge-card .gwrap{position:relative;height:150px;}
+  .gauge-card .glabel{margin-top:6px;font-size:12.5px;color:var(--text-soft);}
+  .gauge-breakdown{margin-top:10px;text-align:left;font-size:11px;color:var(--text-soft);max-height:100px;overflow-y:auto;border-top:1px solid var(--border);padding-top:6px;}
+  .gauge-breakdown-item{display:flex;justify-content:space-between;gap:8px;padding:3px 2px;}
+  .gauge-breakdown-item span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gauge-breakdown-item span:last-child{font-weight:600;color:var(--text);flex:none;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px;}
+  @media(max-width:620px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+  .stat{padding:14px 16px;position:relative;overflow:hidden;}
+  .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--bar,var(--blue));}
+  .stat .num{font-family:'Kanit',sans-serif;font-size:24px;font-weight:600;line-height:1.1;}
+  .stat .lbl{font-size:11px;color:var(--text-soft);margin-top:4px;}
+  .stat .sub{font-size:10.5px;color:var(--text-dim);margin-top:6px;}
+
+  .pager{display:flex;gap:5px;align-items:center;justify-content:center;padding:12px 10px;flex-wrap:wrap;}
+  .pager button{font-family:'Sarabun',sans-serif;font-size:12px;min-width:28px;height:28px;padding:0 6px;border-radius:6px;border:1px solid var(--border);background:var(--panel-hi);color:var(--text-soft);cursor:pointer;}
+  .pager button.active{background:linear-gradient(135deg,var(--teal),var(--blue));color:#071018;font-weight:700;border-color:transparent;}
+  .pager button:disabled{opacity:.35;cursor:default;}
+  .pager button:hover:not(:disabled):not(.active){color:var(--text);border-color:rgba(255,255,255,.25);}
+  .pager .dots{color:var(--text-dim);font-size:12px;padding:0 2px;}
+
+  .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:16px;align-items:stretch;}
+  @media(max-width:900px){.chart-grid{grid-template-columns:1fr;}}
+  .chart-card{padding:16px;height:300px;display:flex;flex-direction:column;}
+  .chart-card h4{margin:0 0 12px;font-size:12.5px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;font-weight:600;flex:none;}
+  .chart-card .cwrap{position:relative;flex:1;min-height:0;}
+
+  .rank-card{padding:16px;}
+  .rank-card h4{margin:0 0 14px;font-size:12.5px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+  .rank-card h4.big-header{font-size:16px;color:var(--text);text-transform:none;letter-spacing:0;font-weight:700;}
+  .rank-card.aligned{height:300px;display:flex;flex-direction:column;}
+  .rank-card.aligned h4{flex:none;margin-bottom:10px;}
+  .rank-card.aligned .rank-target{flex:1;min-height:0;display:flex;flex-direction:column;}
+  .rank-scroll{flex:1;overflow-y:auto;padding-right:4px;}
+  .rank-pager-wrap{flex:none;}
+  .rank-item{margin-bottom:13px;}
+  .rank-item .rtop{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;gap:8px;}
+  .rank-item .rname{color:var(--text);font-weight:500;}
+  .rank-item .rval{color:var(--text-soft);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rank-item .rname-hi{font-size:16px;font-weight:700;color:var(--teal);}
+  .rank-item .rval-hi{font-size:14px;font-weight:700;color:var(--teal);}
+  .rank-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;}
+  .rank-bar > div{height:100%;border-radius:4px;}
+  .rank-empty{color:var(--text-dim);font-size:12.5px;text-align:center;padding:20px 0;}
+  .rank-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:16px;}
+
+  .table-wrap{overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{position:sticky;top:0;background:var(--panel-hi);color:var(--text);text-align:left;padding:11px 12px;font-weight:600;font-size:11.5px;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
+  thead th:hover{color:var(--teal);}
+  tbody td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:top;color:var(--text);}
+  tbody tr{cursor:pointer;}
+  tbody tr:hover{background:rgba(255,255,255,.03);}
+  .code{font-weight:700;font-variant-numeric:tabular-nums;}
+  .fname{color:var(--text-soft);font-size:12px;}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;color:#071018;}
+  .pill{display:inline-flex;flex-direction:column;gap:1px;padding:4px 9px;border-radius:7px;font-size:11.5px;min-width:100px;}
+  .pill .d{font-weight:700;font-variant-numeric:tabular-nums;}
+  .pill .t{font-size:10.5px;opacity:.85;}
+  .pill.ok{background:var(--ok-bg);color:var(--ok);}
+  .pill.warn{background:var(--warn-bg);color:var(--warn);}
+  .pill.crit,.pill.expired{background:var(--crit-bg);color:var(--crit);}
+  .pill.other{background:var(--other-bg);color:var(--other);}
+  .pill.none{background:var(--none-bg);color:var(--none);}
+  .status-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+
+  .empty{padding:60px 20px;text-align:center;color:var(--text-soft);}
+  .empty .big{font-family:'Kanit',sans-serif;font-size:19px;color:var(--text);margin-bottom:8px;}
+  .toolbar2{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:12px;color:var(--text-soft);border-bottom:1px solid var(--border);}
+  .mini-tabs{display:flex;gap:6px;padding:12px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+  .mini-tabs .mini-label{font-size:11.5px;color:var(--text-soft);margin-right:4px;}
+  .mini-tab{font-family:'Sarabun',sans-serif;font-size:12.5px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--panel-hi);color:var(--text-soft);cursor:pointer;}
+  .mini-tab.active{background:linear-gradient(135deg,var(--teal),var(--blue));color:#071018;font-weight:600;border-color:transparent;}
+  .mini-tab:hover:not(.active){color:var(--text);border-color:rgba(255,255,255,.25);}
+
+  .overlay{position:fixed;inset:0;background:rgba(3,7,15,.65);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;max-width:760px;width:100%;padding:0;overflow:hidden;}
+  .modal-head{background:var(--panel-hi);padding:20px 24px;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
+  .modal-head h3{margin:0 0 4px;font-size:19px;}
+  .modal-head .sub{color:var(--text-soft);font-size:13px;}
+  .modal-close{background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;line-height:1;}
+  .modal-body{padding:20px 24px;max-height:70vh;overflow:auto;}
+  .track-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+  @media(max-width:640px){.track-grid{grid-template-columns:1fr;}}
+  .track{border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--panel-hi);}
+  .track h4{margin:0 0 8px;font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px;}
+  .track .val{font-size:14px;font-weight:600;}
+  .track .sub2{font-size:12px;color:var(--text-soft);margin-top:4px;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:13px;margin-bottom:16px;}
+  .info-grid .k{color:var(--text-soft);font-size:11px;}
+  .info-grid .v{font-weight:500;}
+  .src-tags{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border);}
+  .src-tag{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--none-bg);color:var(--none);}
+  .src-tag.on{background:var(--ok-bg);color:var(--ok);}
+
+  .toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:60;}
+  .toast{background:var(--panel-hi);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:13px;max-width:320px;box-shadow:0 10px 24px rgba(0,0,0,.4);}
+  .toast.err{background:rgba(255,90,110,.18);border-color:var(--red);}
+  footer{text-align:center;color:var(--text-dim);font-size:12px;padding:20px;}
+</style>
+</head>
+<body>
+
+<div class="accentbar"></div>
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <h1>แดชบอร์ดบริหารข้อมูลโรงงานแฟรนไชส์ (FC)</h1>
+      <p>ฐานข้อมูลหลักอ้างอิงจากไฟล์ OPEN FC เชื่อมโยงกับวงเงินค้ำประกัน (BG), ใบอนุญาต Smart License และสัญญาแฟรนไชส์ ด้วยรหัสโรงงานหรือชื่อ บจก./หจก.</p>
+    </div>
+    <div class="top-actions">
+      <span id="lastSync" class="btn-quiet btn" style="cursor:default;">ยังไม่มีข้อมูล</span>
+      <div class="msel" style="position:relative;">
+        <button class="btn btn-ghost" id="exportBtn" type="button">⇩ ดาวน์โหลด ▾</button>
+        <div class="msel-panel" id="exportPanel" style="min-width:260px;">
+          <div class="flabel" style="margin-bottom:5px;">กิจการ</div>
+          <select id="exportRegion" style="width:100%;margin-bottom:12px;"><option value="">ทุกกิจการ</option></select>
+          <div class="flabel" style="margin-bottom:5px;">เรื่องที่ต้องการดาวน์โหลด</div>
+          <label><input type="checkbox" value="bg" checked> BG</label>
+          <label><input type="checkbox" value="license" checked> Smart License</label>
+          <label><input type="checkbox" value="contract" checked> สัญญา</label>
+          <div class="flabel" style="margin:12px 0 5px;">หมดอายุภายใน</div>
+          <select id="exportExpiry" style="width:100%;margin-bottom:12px;">
+            <option value="all" selected>ทั้งหมด</option>
+            <option value="30">30 วัน</option>
+            <option value="60">60 วัน</option>
+            <option value="90">90 วัน</option>
+          </select>
+          <button class="btn btn-accent" id="exportConfirmBtn" type="button" style="width:100%;justify-content:center;">⇩ ดาวน์โหลดไฟล์ Excel</button>
+        </div>
+      </div>
+      <button class="btn btn-quiet" id="resetBtn">↻ รีเฟรชข้อมูล</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="sources card">
+    <div class="sources-head">
+      <h2>แหล่งข้อมูลที่ระบบรู้จัก</h2>
+      <span class="hint">อ่านข้อมูลอัตโนมัติจากไฟล์ Excel ในโฟลเดอร์เดียวกับหน้านี้ทุกครั้งที่เปิด (BG.xlsx, OPENFC.xlsx, SmartLicense.xlsx, ไฟล์สัญญา) — แก้ไข/แทนที่ไฟล์บน GitHub แล้วรีเฟรชหน้านี้เพื่อดูข้อมูลล่าสุด</span>
+    </div>
+    <div class="source-grid" id="sourceGrid"></div>
+  </section>
+
+  <div class="filter-bar card">
+    <div class="fgroup" style="flex:1;min-width:220px;">
+      <span class="flabel">ค้นหา</span>
+      <input type="text" id="searchBox" placeholder="รหัสโรงงาน / ชื่อโรงงาน / Type / บจก.-หจก. / ผู้จัดการผลิต ...">
+    </div>
+    <div class="fgroup">
+      <span class="flabel">กิจการ (จาก OPEN FC)</span>
+      <select id="regionFilter"><option value="">ทุกกิจการ</option></select>
+    </div>
+    <div class="spacer"></div>
+    <span class="hint" id="countLabel" style="font-size:12px;color:var(--text-soft);"></span>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="overview">จำนวนโรงงาน</button>
+    <button class="tab-btn" data-tab="bg">BG</button>
+    <button class="tab-btn" data-tab="license">Smart License</button>
+    <button class="tab-btn" data-tab="contract">สัญญา</button>
+  </div>
+
+  <!-- TAB: OVERVIEW -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="stat-grid" id="statGridOverview"></div>
+    <div class="chart-grid">
+      <div class="chart-card card"><h4>สัดส่วนโรงงานตามกิจการ</h4><div class="cwrap"><canvas id="chartRegion"></canvas></div></div>
+      <div class="chart-card card"><h4>สัดส่วนโรงงานตามสถานะ (แยกตาม Type)</h4><div class="cwrap"><canvas id="chartStatus"></canvas></div></div>
+      <div class="rank-card card aligned"><h4 class="big-header">โรงงานที่เปิดเพิ่ม (ปีปัจจุบัน)</h4><div class="rank-target" id="rankNewOpen"></div></div>
+      <div class="rank-card card aligned"><h4 class="big-header">โรงงานที่ปิด (ปีปัจจุบัน)</h4><div class="rank-target" id="rankNewClosed"></div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="rank-card card aligned"><h4>BG ใกล้หมดอายุมากที่สุด</h4><div class="rank-target" id="rankOverviewBg"></div></div>
+      <div class="rank-card card aligned"><h4>Smart License ใกล้หมดอายุมากที่สุด</h4><div class="rank-target" id="rankOverviewLic"></div></div>
+      <div class="rank-card card aligned"><h4>สัญญาใกล้หมดอายุมากที่สุด</h4><div class="rank-target" id="rankOverviewCt"></div></div>
+    </div>
+    <div class="table-wrap card">
+      <div class="mini-tabs" data-statustab="overview">
+        <span class="mini-label">สถานะโรงงาน:</span>
+        <button class="mini-tab active" data-status="all">ทั้งหมด</button>
+        <button class="mini-tab" data-status="open">เปิดดำเนินการ</button>
+        <button class="mini-tab" data-status="temp_closed">ปิดชั่วคราว</button>
+        <button class="mini-tab" data-status="closed">ปิดโรงงาน</button>
+      </div>
+      <div class="toolbar2"><span id="countOverview"></span></div>
+      <table id="tableOverview">
+        <thead><tr>
+          <th data-k="region">กิจการ</th><th data-k="manager">ผู้จัดการผลิต</th><th data-k="company">บจก./หจก.</th><th data-k="code">รหัสโรงงาน</th><th data-k="factoryName">ชื่อโรงงาน</th><th data-k="facType">Type</th>
+          <th data-k="opstatus">สถานะโรงงาน</th><th data-k="bgDays">BG</th><th data-k="licDays">Smart License</th>
+          <th data-k="ctDays">สัญญา</th>
+        </tr></thead>
+        <tbody id="tbodyOverview"></tbody>
+      </table>
+      <div id="pagerOverview"></div>
+      <div class="empty" id="emptyState" style="display:none;">
+        <div class="big">ยังไม่มีข้อมูล</div>
+        <div>อัปโหลดไฟล์ OPENFC.xlsx เป็นอันดับแรก จากนั้นตามด้วย BG.xlsx, SmartLicense.xlsx และ สัญญา_FC.xlsx</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: BG -->
+  <div class="tab-content" id="tab-bg">
+    <div class="gauge-row" id="gaugeRowBg"></div>
+    <div class="chart-grid">
+      <div class="chart-card card"><h4>จำนวนตามสถานะ BG</h4><div class="cwrap"><canvas id="chartBgLevel"></canvas></div></div>
+      <div class="chart-card card"><h4>วันสิ้นสุด BG แยกตามปี (พ.ศ.)</h4><div class="cwrap"><canvas id="chartBgYear"></canvas></div></div>
+      <div class="chart-card card"><h4>สถานะของเอกสาร (ประเภทหลักประกัน)</h4><div class="cwrap"><canvas id="chartBgDoc"></canvas></div></div>
+      <div class="rank-card card aligned"><h4>ใกล้หมดอายุ BG มากที่สุด</h4><div class="rank-target" id="rankBg"></div></div>
+    </div>
+    <div class="table-wrap card">
+      <div class="mini-tabs" data-tab="bg">
+        <span class="mini-label">หมดอายุภายใน:</span>
+        <button class="mini-tab active" data-days="all">ทั้งหมด</button>
+        <button class="mini-tab" data-days="30">≤30 วัน</button>
+        <button class="mini-tab" data-days="60">≤60 วัน</button>
+        <button class="mini-tab" data-days="90">≤90 วัน</button>
+      </div>
+      <div class="mini-tabs" data-statustab="bg">
+        <span class="mini-label">สถานะโรงงาน:</span>
+        <button class="mini-tab" data-status="all">ทั้งหมด</button>
+        <button class="mini-tab active" data-status="open">เปิดดำเนินการ</button>
+        <button class="mini-tab" data-status="temp_closed">ปิดชั่วคราว</button>
+        <button class="mini-tab" data-status="closed">ปิดโรงงาน</button>
+      </div>
+      <div class="toolbar2"><span id="countBg"></span></div>
+      <table id="tableBg">
+        <thead><tr>
+          <th data-k="region">กิจการ</th><th data-k="company">บจก./หจก.</th><th data-k="code">รหัสโรงงาน</th><th data-k="factoryName">ชื่อโรงงาน</th><th data-k="facType">Type</th>
+          <th data-k="bgDays">สถานะ BG</th><th data-k="bgCategory">ประเภทหลักประกัน</th><th data-k="bgLimit">วงเงินปัจจุบัน</th><th data-k="manager">ผู้จัดการผลิต</th>
+        </tr></thead>
+        <tbody id="tbodyBg"></tbody>
+      </table>
+      <div id="pagerBg"></div>
+    </div>
+  </div>
+
+  <!-- TAB: SMART LICENSE -->
+  <div class="tab-content" id="tab-license">
+    <div class="gauge-row" id="gaugeRowLic"></div>
+    <div class="chart-grid">
+      <div class="chart-card card"><h4>จำนวนตามสถานะ Smart License</h4><div class="cwrap"><canvas id="chartLicLevel"></canvas></div></div>
+      <div class="chart-card card"><h4>วันสิ้นสุด Smart License แยกตามปี (พ.ศ.)</h4><div class="cwrap"><canvas id="chartLicYear"></canvas></div></div>
+      <div class="rank-card card aligned"><h4>ใกล้หมดอายุ License มากที่สุด</h4><div class="rank-target" id="rankLic"></div></div>
+    </div>
+    <div class="table-wrap card">
+      <div class="mini-tabs" data-tab="license">
+        <span class="mini-label">หมดอายุภายใน:</span>
+        <button class="mini-tab active" data-days="all">ทั้งหมด</button>
+        <button class="mini-tab" data-days="30">≤30 วัน</button>
+        <button class="mini-tab" data-days="60">≤60 วัน</button>
+        <button class="mini-tab" data-days="90">≤90 วัน</button>
+      </div>
+      <div class="mini-tabs" data-statustab="license">
+        <span class="mini-label">สถานะโรงงาน:</span>
+        <button class="mini-tab" data-status="all">ทั้งหมด</button>
+        <button class="mini-tab active" data-status="open">เปิดดำเนินการ</button>
+        <button class="mini-tab" data-status="temp_closed">ปิดชั่วคราว</button>
+        <button class="mini-tab" data-status="closed">ปิดโรงงาน</button>
+      </div>
+      <div class="toolbar2"><span id="countLic"></span></div>
+      <table id="tableLic">
+        <thead><tr>
+          <th data-k="region">กิจการ</th><th data-k="company">บจก./หจก.</th><th data-k="code">รหัสโรงงาน</th><th data-k="factoryName">ชื่อโรงงาน</th><th data-k="facType">Type</th>
+          <th data-k="licDays">สถานะ Smart License</th><th data-k="licStatus">สถานะ</th><th data-k="licenseIssue">ติดปัญหา</th><th data-k="manager">ผู้จัดการผลิต</th>
+        </tr></thead>
+        <tbody id="tbodyLic"></tbody>
+      </table>
+      <div id="pagerLic"></div>
+    </div>
+  </div>
+
+  <!-- TAB: CONTRACT -->
+  <div class="tab-content" id="tab-contract">
+    <div class="gauge-row" id="gaugeRowCt"></div>
+    <div class="chart-grid">
+      <div class="chart-card card"><h4>จำนวนตามสถานะสัญญา</h4><div class="cwrap"><canvas id="chartCtLevel"></canvas></div></div>
+      <div class="chart-card card"><h4>วันสิ้นสุดสัญญาแยกตามปี (พ.ศ.)</h4><div class="cwrap"><canvas id="chartCtYear"></canvas></div></div>
+      <div class="rank-card card aligned"><h4>ใกล้หมดอายุสัญญามากที่สุด</h4><div class="rank-target" id="rankCt"></div></div>
+      <div class="rank-card card aligned"><h4>โรงงานที่ไม่มีสัญญา</h4><div class="rank-target" id="rankCtNone"></div></div>
+    </div>
+    <div class="table-wrap card">
+      <div class="mini-tabs" data-tab="contract">
+        <span class="mini-label">หมดอายุภายใน:</span>
+        <button class="mini-tab active" data-days="all">ทั้งหมด</button>
+        <button class="mini-tab" data-days="30">≤30 วัน</button>
+        <button class="mini-tab" data-days="60">≤60 วัน</button>
+        <button class="mini-tab" data-days="90">≤90 วัน</button>
+        <button class="mini-tab" data-days="nocontract">ไม่มีสัญญา</button>
+      </div>
+      <div class="mini-tabs" data-statustab="contract">
+        <span class="mini-label">สถานะโรงงาน:</span>
+        <button class="mini-tab" data-status="all">ทั้งหมด</button>
+        <button class="mini-tab active" data-status="open">เปิดดำเนินการ</button>
+        <button class="mini-tab" data-status="temp_closed">ปิดชั่วคราว</button>
+        <button class="mini-tab" data-status="closed">ปิดโรงงาน</button>
+      </div>
+      <div class="toolbar2"><span id="countCt"></span></div>
+      <table id="tableCt">
+        <thead><tr>
+          <th data-k="region">กิจการ</th><th data-k="company">บจก./หจก.</th><th data-k="code">รหัสโรงงาน</th><th data-k="factoryName">ชื่อโรงงาน</th><th data-k="facType">Type</th>
+          <th data-k="contractStart">เริ่มสัญญา</th><th data-k="ctSpecial">วันสิ้นสุดสัญญา</th><th data-k="manager">ผู้จัดการผลิต</th>
+        </tr></thead>
+        <tbody id="tbodyCt"></tbody>
+      </table>
+      <div id="pagerCt"></div>
+    </div>
+  </div>
+</main>
+
+<footer>ข้อมูลถูกเก็บไว้ในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการส่งไฟล์ออกไปที่อื่น · โหลดข้อมูลเริ่มต้นจากไฟล์ที่แนบไว้ล่าสุดแล้ว อัปโหลดไฟล์ใหม่เมื่อต้องการอัปเดต</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h3 id="mTitle">-</h3><div class="sub" id="mSub">-</div></div>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const SOURCE_DEFS = [
+  {key:'master', label:'ทำเนียบโรงงาน (name)', signature:h=>h.includes('รหัสโรงงาน')&&h.includes('บจก./หจก.')},
+  {key:'bg',      label:'วงเงินค้ำประกัน (BG)', signature:h=>h.includes('วงเงินปัจจุบัน')&&h.includes('วิเคราะห์วงเงิน')},
+  {key:'openfc',  label:'สถานะเปิด/ปิดโรงงาน (OPEN FC)', signature:h=>h.includes('รหัส2')||h.includes('ปีที่เปิดโรงงาน')},
+  {key:'license', label:'ใบอนุญาต Smart License (HardLock)', signature:h=>h.includes('รหัสรง.')&&h.includes('HL สิ้นสุด')},
+  {key:'contract',label:'สัญญาแฟรนไชส์ (สัญญา FC)', signature:h=>h.includes('FCPLNO')&&h.includes('อายุสัญญา')},
+  {key:'team',    label:'ผู้จัดการผลิต (Team)', signature:h=>h.includes('ผจก.ผลิต')&&!h.includes('บจก./หจก.')},
+];
+const COLORS = {ok:'#33D17A', warn:'#FFC94A', crit:'#FF5A6E', expired:'#B23A4C', other:'#4C8DFF', none:'#5D6B8A', accent:'#2FD9C4', purple:'#9B7BFF'};
+const CAT_META = {
+  open:{label:'เปิดดำเนินการ', color:'#33D17A'},
+  temp_closed:{label:'ปิดชั่วคราว', color:'#FFC94A'},
+  closed:{label:'ปิดโรงงาน', color:'#FF5A6E'}
+};
+const CAT_FALLBACK = {label:'อื่น ๆ', color:'#5D6B8A'};
+const LEVEL_META = {
+  ok:{label:'ปกติ', color:COLORS.ok},
+  warn:{label:'เฝ้าระวัง (≤90 วัน)', color:COLORS.warn},
+  crit:{label:'ใกล้หมดอายุ (≤30 วัน)', color:COLORS.crit},
+  expired:{label:'หมดอายุแล้ว', color:COLORS.expired},
+  other:{label:'อื่น ๆ', color:COLORS.other},
+  none:{label:'ไม่มีข้อมูล', color:COLORS.none}
+};
+
+let state = { records:{}, meta:{} };
+let regionColorMap = {};
+let activeTab = 'overview';
+const chartInst = {};
+
+/* ================= CHART.JS CENTER TEXT PLUGIN ================= */
+const centerTextPlugin = {
+  id:'centerText',
+  beforeDraw(chart){
+    const opt = chart.config.options.centerText; if(!opt) return;
+    const {width,height,ctx} = chart;
+    ctx.save();
+    ctx.textBaseline='middle'; ctx.textAlign='center';
+    const x=width/2, y=height/2 - (opt.sub?8:0);
+    ctx.font = `700 ${Math.max(18,Math.round(height*0.19))}px Kanit, sans-serif`;
+    ctx.fillStyle = opt.color||'#fff';
+    ctx.fillText(opt.text, x, y);
+    if(opt.sub){
+      ctx.font = `500 ${Math.max(10,Math.round(height*0.085))}px Sarabun, sans-serif`;
+      ctx.fillStyle = opt.subColor||'#8993AC';
+      ctx.fillText(opt.sub, x, y + Math.round(height*0.17));
+    }
+    ctx.restore();
+  }
+};
+if(typeof Chart!=='undefined') Chart.register(centerTextPlugin);
+const valueLabelPlugin = {
+  id:'valueLabels',
+  afterDatasetsDraw(chart){
+    if(!chart.options.showValueLabels) return;
+    const {ctx} = chart;
+    const type = chart.config.type;
+    chart.data.datasets.forEach((dataset, dsIndex)=>{
+      const meta = chart.getDatasetMeta(dsIndex);
+      if(meta.hidden) return;
+      meta.data.forEach((el, index)=>{
+        const value = dataset.data[index];
+        if(value==null || value===0) return;
+        ctx.save();
+        ctx.font = "700 11px Sarabun, sans-serif";
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        if(type==='doughnut' || type==='pie'){
+          const props = el.getProps(['x','y','innerRadius','outerRadius','startAngle','endAngle'], true);
+          const midAngle = (props.startAngle+props.endAngle)/2;
+          const midRadius = (props.innerRadius+props.outerRadius)/2;
+          const px = props.x + Math.cos(midAngle)*midRadius;
+          const py = props.y + Math.sin(midAngle)*midRadius;
+          ctx.fillStyle = '#0B1220';
+          ctx.fillText(String(value), px, py);
+        } else if(type==='line'){
+          ctx.fillStyle = '#E8ECF6';
+          ctx.textBaseline='bottom';
+          ctx.fillText(String(value), el.x, el.y-6);
+        } else {
+          const base = el.base!=null ? el.base : el.y;
+          const midY = (el.y + base)/2;
+          ctx.fillStyle = '#0B1220';
+          ctx.fillText(String(value), el.x, midY);
+        }
+        ctx.restore();
+      });
+    });
+  }
+};
+if(typeof Chart!=='undefined') Chart.register(valueLabelPlugin);
+
+/* ================= UTILS ================= */
+function normCode(v){ return v==null ? '' : String(v).trim().toUpperCase().replace(/\s+/g,''); }
+function cleanCompany(v){ return v==null ? '' : String(v).replace(/^[0-9]{4,}\s*/,'').trim(); }
+function s(v){ return v==null ? '' : String(v).trim(); }
+function currentBEYear(){ return new Date().getFullYear() + 543; }
+
+const THAI_MONTHS = {'ม.ค.':0,'ก.พ.':1,'มี.ค.':2,'เม.ย.':3,'พ.ค.':4,'มิ.ย.':5,'ก.ค.':6,'ส.ค.':7,'ก.ย.':8,'ต.ค.':9,'พ.ย.':10,'ธ.ค.':11};
+function parseThaiDate(v){
+  if(v==null || v==='') return null;
+  if(v instanceof Date && !isNaN(v)){
+    let y=v.getFullYear(); if(y>2400) y-=543;
+    return new Date(y, v.getMonth(), v.getDate());
+  }
+  const str = String(v).trim(); if(!str) return null;
+  let m = str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if(m){
+    let d=+m[1], mo=+m[2], y=+m[3];
+    if(mo<1||mo>12||d<1||d>31) return null;
+    if(y<100) y+=2500; if(y>2400) y-=543;
+    const dt = new Date(y, mo-1, d);
+    return isNaN(dt) ? null : dt;
+  }
+  m = str.match(/^(\d{1,2})\s*([ก-๙.]+)\s*(\d{2,4})$/);
+  if(m && THAI_MONTHS[m[2]]!==undefined){
+    let y=+m[3]; if(y<100) y+=2500; if(y>2400) y-=543;
+    return new Date(y, THAI_MONTHS[m[2]], +m[1]);
+  }
+  return null;
+}
+function fmtDate(d){ return d ? d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}) : '—'; }
+function daysUntil(d){
+  if(!d) return null;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const dd=new Date(d); dd.setHours(0,0,0,0);
+  return Math.round((dd-today)/86400000);
+}
+function levelFor(days){ if(days==null) return 'none'; if(days<0) return 'expired'; if(days<=30) return 'crit'; if(days<=90) return 'warn'; return 'ok'; }
+const VIVID_PALETTE = ['#4C8DFF','#FF6B4A','#33D17A','#FFC94A','#C874FF','#2FD9C4','#FF4D8D','#8BC34A','#FFA000','#5C6BC0','#26C6DA','#EF5350'];
+function buildRegionColorMap(){
+  const regions = [...new Set(baseRecords().map(r=>r.regionOpenfc||r.region).filter(Boolean))].sort();
+  regionColorMap = {};
+  regions.forEach((r,i)=>{ regionColorMap[r] = VIVID_PALETTE[i % VIVID_PALETTE.length]; });
+}
+function regionColor(name){ return regionColorMap[name] || '#5D6B8A'; }
+function getHeaderIdx(headers, name, occurrence){
+  const idxs=[]; headers.forEach((h,i)=>{ if(s(h)===name) idxs.push(i); });
+  if(idxs.length===0) return -1;
+  return occurrence==='last' ? idxs[idxs.length-1] : idxs[0];
+}
+function resolveTrack(rec, dK, rK, adK, arK){
+  const date = (rec[dK] && !isNaN(new Date(rec[dK]))) ? new Date(rec[dK]) : ((adK && rec[adK] && !isNaN(new Date(rec[adK]))) ? new Date(rec[adK]) : null);
+  let raw = null;
+  if(!date) raw = rec[rK] || (arK?rec[arK]:null) || null;
+  const days = daysUntil(date);
+  const level = date ? levelFor(days) : (raw ? 'other' : 'none');
+  return {date, raw, days, level};
+}
+function lifecycleCategory(rec){
+  const raw = (rec.opStatus||'').trim();
+  const rawU = raw.toUpperCase();
+  if(rawU==='OPEN') return 'open';
+  if(raw==='ปิดชั่วคราว') return 'temp_closed';
+  if(rawU==='CLOSE') return 'closed';
+  return null;
+}
+function catMetaFor(cat){ return cat ? CAT_META[cat] : CAT_FALLBACK; }
+
+/* ================= PARSING (for new uploads) ================= */
+function detectAndParseSheet(ws, fileName, results){
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+  const maxScan = Math.min(rows.length, 8);
+  for(let r=0;r<maxScan;r++){
+    const joined = (rows[r]||[]).map(v=>s(v)).join(' | ');
+    for(const def of SOURCE_DEFS){
+      if(def.signature(joined)){ parseByType(def.key, rows, r, results); return def.key; }
+    }
+  }
+  return null;
+}
+function parseByType(type, rows, headerRow, results){
+  const headers = (rows[headerRow]||[]).map(s);
+  const out = [];
+  if(type==='master'){
+    const cRegion=getHeaderIdx(headers,'กิจการ'), cCode=getHeaderIdx(headers,'รหัสโรงงาน'),
+          cFac=getHeaderIdx(headers,'โรงงาน FC/PC'), cComp=getHeaderIdx(headers,'บจก./หจก.'),
+          cMgr=headers.findIndex(h=>h.includes('ผจก.')), cEmail=getHeaderIdx(headers,'Email Address');
+    for(let r=headerRow+1;r<rows.length;r++){
+      const row=rows[r]; if(!row) continue;
+      const code=normCode(row[cCode]); if(!code) continue;
+      out.push({code, region:s(row[cRegion]), factoryName:s(row[cFac]), company:s(row[cComp]),
+                 manager:s(row[cMgr]), email:s(row[cEmail])});
+    }
+  }
+  else if(type==='bg'){
+    const cRegion=getHeaderIdx(headers,'กิจการ');
+    const cAgentCode=getHeaderIdx(headers,'รหัส','first'), cCode=getHeaderIdx(headers,'รหัส','last');
+    const cOwner=getHeaderIdx(headers,'รายชื่อ OWNER'), cFacName=getHeaderIdx(headers,'ชื่อโรงงาน');
+    const cType=getHeaderIdx(headers,'TYPE'), cAgentStatus=getHeaderIdx(headers,'สถานะ');
+    const cBgCat=getHeaderIdx(headers,'BG/PG/อื่น ๆ'), cBgEnd=getHeaderIdx(headers,'วันสิ้นสุด');
+    const cLimit=getHeaderIdx(headers,'วงเงินปัจจุบัน'), cAnalyzed=getHeaderIdx(headers,'วิเคราะห์วงเงิน');
+    const cInstr=getHeaderIdx(headers,'BG/PG/CG/เงินสด'), cFollow=headers.findIndex(h=>h.includes('ติดตามความคืบหน้า'));
+    const cMgr=getHeaderIdx(headers,'ผจก.ฟช.'), cEmail=getHeaderIdx(headers,'E-Mail');
+    for(let r=headerRow+1;r<rows.length;r++){
+      const row=rows[r]; if(!row) continue;
+      const code=normCode(row[cCode]); if(!code) continue;
+      const rawEnd = row[cBgEnd];
+      out.push({code, region:s(row[cRegion]), agentCode:s(row[cAgentCode]), company:cleanCompany(row[cOwner]),
+                 factoryName:s(row[cFacName]), type:s(row[cType]), agentStatus:s(row[cAgentStatus]),
+                 bgCategory:s(row[cBgCat]), bgEndDate:parseThaiDate(rawEnd), bgEndRaw:s(rawEnd), bgLimit:row[cLimit],
+                 bgAnalyzed:row[cAnalyzed], bgInstrument:s(row[cInstr]), bgFollowUp:s(row[cFollow]),
+                 manager:s(row[cMgr]), email:s(row[cEmail])});
+    }
+  }
+  else if(type==='openfc'){
+    const cRegion=getHeaderIdx(headers,'กิจการ'), cOwner=getHeaderIdx(headers,'รายชื่อ OWNER');
+    const cCode=getHeaderIdx(headers,'รหัส2'), cFacName=getHeaderIdx(headers,'ชื่อโรงงาน');
+    const cProvince=getHeaderIdx(headers,'จังหวัด'), cType=getHeaderIdx(headers,'TYPE','first');
+    const cType2=getHeaderIdx(headers,'TYPE','last'), cStatus=getHeaderIdx(headers,'สถานะ');
+    const cAgent=getHeaderIdx(headers,'AGENT'), cOpenM=getHeaderIdx(headers,'เดือน'), cOpenY=getHeaderIdx(headers,'ปีที่เปิดโรงงาน');
+    const cCloseM=getHeaderIdx(headers,'เดือน3'), cCloseY=getHeaderIdx(headers,'ปีที่ปิดโรงงาน');
+    const cNote=getHeaderIdx(headers,'หมายเหตุ');
+    for(let r=headerRow+1;r<rows.length;r++){
+      const row=rows[r]; if(!row) continue;
+      const code=normCode(row[cCode]); if(!code) continue;
+      out.push({code, region:s(row[cRegion]), company:s(row[cOwner]), factoryName:s(row[cFacName]),
+                 province:s(row[cProvince]), type:s(row[cType]), type2:s(row[cType2]), opStatus:s(row[cStatus]),
+                 agent:s(row[cAgent]), openMonth:s(row[cOpenM]), openYear:row[cOpenY],
+                 closeMonth:s(row[cCloseM]), closeYear:row[cCloseY], note:s(row[cNote])});
+    }
+  }
+  else if(type==='license'){
+    const cRegion=getHeaderIdx(headers,'กิจการ'), cComp=getHeaderIdx(headers,'หจก./บจก.');
+    const cCode=getHeaderIdx(headers,'รหัสรง.'), cFacName=getHeaderIdx(headers,'ชื่อโรงงาน');
+    const cHlEnd=getHeaderIdx(headers,'HL สิ้นสุด'), cIssue=getHeaderIdx(headers,'ติดปัญหา');
+    const cContractAlt=getHeaderIdx(headers,'สัญญาหมด'), cBgAlt=getHeaderIdx(headers,'วันสิ้นสุด');
+    for(let r=headerRow+1;r<rows.length;r++){
+      const row=rows[r]; if(!row) continue;
+      const code=normCode(row[cCode]); if(!code) continue;
+      const rawHl = row[cHlEnd], rawCt = row[cContractAlt], rawBg = row[cBgAlt];
+      out.push({code, region:s(row[cRegion]), company:s(row[cComp]), factoryName:s(row[cFacName]),
+                 licenseEndDate:parseThaiDate(rawHl), licenseEndRaw:s(rawHl), issue:s(row[cIssue]),
+                 contractEndAlt:parseThaiDate(rawCt), contractEndAltRaw:s(rawCt),
+                 bgEndAlt:parseThaiDate(rawBg), bgEndAltRaw:s(rawBg)});
+    }
+  }
+  else if(type==='contract'){
+    const cRegion=getHeaderIdx(headers,'กิจการ'), cComp=getHeaderIdx(headers,'หจก./บจก.');
+    const cCode=getHeaderIdx(headers,'FCPLNO'), cFacName=getHeaderIdx(headers,'โรงงาน');
+    const cStart=getHeaderIdx(headers,'อายุสัญญา');
+    // The end-date column is usually labeled 'วันสิ้นสุด' on the row right below the main header;
+    // fall back to the column immediately after 'อายุสัญญา' if that sub-header row isn't present.
+    const subRow = (rows[headerRow+1]||[]).map(s);
+    const subEndIdx = subRow.findIndex(h=>h==='วันสิ้นสุด');
+    let cEnd, dataStart;
+    if(subEndIdx>=0){ cEnd = subEndIdx; dataStart = headerRow+2; }
+    else { cEnd = cStart>=0 ? cStart+1 : -1; dataStart = headerRow+1; }
+    const cReason = cEnd>=0 ? cEnd+1 : -1;
+    for(let r=dataStart;r<rows.length;r++){
+      const row=rows[r]; if(!row) continue;
+      const code=normCode(row[cCode]); if(!code) continue;
+      const rawEnd = row[cEnd];
+      out.push({code, region:s(row[cRegion]), company:s(row[cComp]), factoryName:s(row[cFacName]),
+                 contractStart:parseThaiDate(row[cStart]), contractEndDate:parseThaiDate(rawEnd), contractEndRaw:s(rawEnd),
+                 contractReason: cReason>=0 ? s(row[cReason]) : ''});
+    }
+  }
+  else if(type==='team'){
+    let cCode = headers.findIndex(h=>h.includes('รหัส'));
+    let cMgr = getHeaderIdx(headers,'ผจก.ผลิต');
+    if(cMgr<0) cMgr = 5; // fall back to column F
+    for(let r=headerRow+1;r<rows.length;r++){
+      const row=rows[r]; if(!row) continue;
+      const code = cCode>=0 ? normCode(row[cCode]) : '';
+      if(!code) continue;
+      out.push({code, manager:s(row[cMgr])});
+    }
+  }
+  results[type] = (results[type]||[]).concat(out);
+}
+function ensureRecord(code){
+  if(!state.records[code]) state.records[code] = {code, region:'', factoryName:'', company:'', manager:'', email:'', sources:{}};
+  return state.records[code];
+}
+function fillIfEmpty(rec, key, val){ if(val && !rec[key]) rec[key]=val; }
+function mergeParsed(type, rows){
+  for(const row of rows){
+    const rec = ensureRecord(row.code);
+    rec.sources[type]=true;
+    fillIfEmpty(rec,'region',row.region);
+    fillIfEmpty(rec,'company',row.company);
+    fillIfEmpty(rec,'factoryName',row.factoryName);
+    if(type==='master'){
+      rec.manager=row.manager||rec.manager; rec.email=row.email||rec.email; rec.inMaster=true;
+    } else if(type==='bg'){
+      Object.assign(rec,{bgAgentCode:row.agentCode,bgType:row.type,bgAgentStatus:row.agentStatus,
+        bgCategory:row.bgCategory,bgEndDate:row.bgEndDate,bgEndRaw:row.bgEndRaw,bgLimit:row.bgLimit,bgAnalyzed:row.bgAnalyzed,
+        bgInstrument:row.bgInstrument,bgFollowUp:row.bgFollowUp});
+      fillIfEmpty(rec,'manager',row.manager); fillIfEmpty(rec,'email',row.email);
+    } else if(type==='openfc'){
+      rec.regionOpenfc = row.region;
+      Object.assign(rec,{province:row.province,opStatus:row.opStatus,agent:row.agent,
+        openMonth:row.openMonth,openYear:row.openYear,closeMonth:row.closeMonth,closeYear:row.closeYear,
+        opNote:row.note,facType:row.type,facType2:row.type2});
+    } else if(type==='license'){
+      Object.assign(rec,{licenseEndDate:row.licenseEndDate,licenseEndRaw:row.licenseEndRaw,licenseIssue:row.issue,
+        contractEndAlt:row.contractEndAlt,contractEndAltRaw:row.contractEndAltRaw,bgEndAlt:row.bgEndAlt,bgEndAltRaw:row.bgEndAltRaw});
+    } else if(type==='contract'){
+      Object.assign(rec,{contractStart:row.contractStart,contractEndDate:row.contractEndDate,contractEndRaw:row.contractEndRaw,contractReason:row.contractReason});
+    } else if(type==='team'){
+      if(row.manager) rec.manager = row.manager;
+    }
+  }
+}
+
+/* ================= AUTO-LOAD FROM FILES IN SAME FOLDER ================= */
+// Candidate filenames to look for next to this HTML file (tries each until one responds).
+const CANDIDATE_FILES = [
+  'BG.xlsx',
+  'OPENFC.xlsx',
+  'SmartLicense.xlsx',
+  'Team.xlsx', 'TEAM.xlsx', 'team.xlsx',
+  'ส_ญญาFC.xlsx', 'สัญญา_FC.xlsx', 'ส_ญญา_FC.xlsx', 'สัญญาFC.xlsx', 'Contract_FC.xlsx', 'ContractFC.xlsx'
+];
+async function loadAllData(){
+  state = {records:{}, meta:{}};
+  const foundFiles = [];
+  for(const fname of CANDIDATE_FILES){
+    try{
+      const resp = await fetch(encodeURI(fname), {cache:'no-store'});
+      if(!resp.ok) continue;
+      const buf = await resp.arrayBuffer();
+      const wb = XLSX.read(buf, {type:'array', cellDates:true});
+      const results = {};
+      let any = false;
+      wb.SheetNames.forEach(name=>{
+        const t = detectAndParseSheet(wb.Sheets[name], fname, results);
+        if(t) any = true;
+      });
+      if(!any) continue;
+      for(const type in results){
+        mergeParsed(type, results[type]);
+        state.meta[type] = {fileName:fname, rows:results[type].length, updatedAt:new Date().toISOString()};
+      }
+      foundFiles.push(fname);
+    }catch(e){ /* file not present, or fetch blocked (e.g. opened via file://) */ }
+  }
+  if(foundFiles.length===0){
+    showToast('ไม่พบไฟล์ Excel ในโฟลเดอร์เดียวกับหน้านี้ กรุณาวางไฟล์ BG.xlsx, OPENFC.xlsx, SmartLicense.xlsx และไฟล์สัญญา ไว้ในโฟลเดอร์เดียวกัน แล้วเปิดผ่านเว็บเซิร์ฟเวอร์ (เช่น GitHub Pages) ไม่ใช่เปิดไฟล์ตรง ๆ', true);
+  } else {
+    showToast('โหลดข้อมูลจาก '+foundFiles.length+' ไฟล์สำเร็จ');
+  }
+  renderAll();
+}
+
+/* ================= DERIVED / BASE ================= */
+function computeDerived(rec){
+  const bg = resolveTrack(rec,'bgEndDate','bgEndRaw','bgEndAlt','bgEndAltRaw');
+  const lic = resolveTrack(rec,'licenseEndDate','licenseEndRaw', null, null);
+  const ct = resolveTrack(rec,'contractEndDate','contractEndRaw','contractEndAlt','contractEndAltRaw');
+  return {bg, lic, ct};
+}
+function allRecords(){ return Object.values(state.records); }
+function baseRecords(){ return allRecords().filter(r=>r.sources && r.sources.openfc); }
+function currentFilters(){
+  return { q: document.getElementById('searchBox').value.trim().toLowerCase(),
+    region: document.getElementById('regionFilter').value };
+}
+function matchesSearchRegion(r, f){
+  const region = r.regionOpenfc || r.region;
+  if(f.region && region!==f.region) return false;
+  if(f.q){
+    const hay = (r.code+' '+r.factoryName+' '+r.company+' '+(r.facType||'')+' '+(r.manager||'')).toLowerCase();
+    if(!hay.includes(f.q)) return false;
+  }
+  return true;
+}
+function filteredBase(){
+  const f = currentFilters();
+  return baseRecords().filter(r=>matchesSearchRegion(r, f));
+}
+
+/* ================= FILTER UI ================= */
+function populateRegionFilter(){
+  const sel = document.getElementById('regionFilter');
+  const cur = sel.value;
+  const regions = [...new Set(baseRecords().map(r=>r.regionOpenfc||r.region).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">ทุกกิจการ</option>' + regions.map(r=>`<option value="${r}">${r}</option>`).join('');
+  if(regions.includes(cur)) sel.value = cur;
+}
+
+/* ================= SOURCES ================= */
+function renderSources(){
+  const grid = document.getElementById('sourceGrid');
+  grid.innerHTML = SOURCE_DEFS.map(def=>{
+    const m = state.meta[def.key]; const loaded = !!m;
+    return `<div class="source-card ${loaded?'loaded':''}">
+      <div><span class="dot"></span><span class="label">${def.label}</span></div>
+      <div class="meta">${loaded ? (m.rows+' แถว · '+m.fileName+' · '+new Date(m.updatedAt).toLocaleString('th-TH')) : 'ยังไม่มีข้อมูล'}</div>
+    </div>`;
+  }).join('');
+  const anyLoaded = Object.keys(state.meta).length>0;
+  const lastSync = document.getElementById('lastSync');
+  lastSync.textContent = anyLoaded ? ('อัปเดตล่าสุด: '+new Date(Math.max(...Object.values(state.meta).map(m=>new Date(m.updatedAt).getTime()))).toLocaleString('th-TH')) : 'ยังไม่มีข้อมูล';
+}
+
+/* ================= CHARTS ================= */
+if(typeof Chart!=='undefined'){ Chart.defaults.font.family = "'Sarabun', sans-serif"; Chart.defaults.color = '#8993AC'; }
+function drawChart(id, config){
+  const el = document.getElementById(id); if(!el || typeof Chart==='undefined') return;
+  if(chartInst[id]) chartInst[id].destroy();
+  chartInst[id] = new Chart(el, config);
+}
+function levelCounts(recs, key){
+  const cats = ['ok','warn','crit','expired','other','none'];
+  return cats.map(c=>recs.filter(r=>computeDerived(r)[key].level===c).length);
+}
+function yearCounts(recs, key){
+  const counts={};
+  recs.forEach(r=>{ const d = computeDerived(r)[key].date; if(!d) return; const y=d.getFullYear()+543; counts[y]=(counts[y]||0)+1; });
+  const years = Object.keys(counts).map(Number).sort((a,b)=>a-b);
+  return {years, counts};
+}
+function makeGradient(ctx, hexColor, h){
+  const g = ctx.createLinearGradient(0,0,0,h||220);
+  g.addColorStop(0, hexColor+'66'); g.addColorStop(1, hexColor+'00');
+  return g;
+}
+function drawLevelBar(id, recs, key){
+  const cats = ['ok','warn','crit','expired','other','none'];
+  drawChart(id, {
+    type:'bar',
+    data:{labels:cats.map(c=>LEVEL_META[c].label), datasets:[{data:levelCounts(recs,key), backgroundColor:cats.map(c=>LEVEL_META[c].color), borderRadius:6, maxBarThickness:38}]},
+    options:{plugins:{legend:{display:false}}, maintainAspectRatio:false, showValueLabels:true,
+      scales:{y:{beginAtZero:true,ticks:{precision:0,color:'#8993AC'},grid:{color:'rgba(255,255,255,.06)'}},
+               x:{ticks:{font:{size:10},color:'#8993AC'},grid:{display:false}}}}
+  });
+}
+function drawYearBar(id, recs, key){
+  const {years, counts} = yearCounts(recs, key);
+  const el = document.getElementById(id); if(!el || typeof Chart==='undefined') return;
+  const ctx = el.getContext('2d');
+  drawChart(id, {
+    type:'line',
+    data:{labels:years.map(String), datasets:[{data:years.map(y=>counts[y]), borderColor:COLORS.accent, backgroundColor:makeGradient(ctx,COLORS.accent,220),
+      fill:true, tension:.4, pointRadius:3, pointBackgroundColor:COLORS.accent, borderWidth:2}]},
+    options:{plugins:{legend:{display:false}}, maintainAspectRatio:false, showValueLabels:true,
+      scales:{y:{beginAtZero:true,ticks:{precision:0,color:'#8993AC'},grid:{color:'rgba(255,255,255,.06)'}},
+               x:{ticks:{color:'#8993AC'},grid:{display:false}}}}
+  });
+}
+function drawRegionDoughnut(recs){
+  const counts={};
+  recs.forEach(r=>{ const k=r.regionOpenfc||r.region||'ไม่ระบุ'; counts[k]=(counts[k]||0)+1; });
+  const labels=Object.keys(counts), data=labels.map(l=>counts[l]);
+  drawChart('chartRegion', {
+    type:'doughnut',
+    data:{labels, datasets:[{data, backgroundColor:labels.map(l=>regionColor(l)), borderWidth:2, borderColor:'#131D33'}]},
+    options:{maintainAspectRatio:false, showValueLabels:true, plugins:{legend:{position:'right', labels:{boxWidth:12,font:{size:11},color:'#E8ECF6'}}}, cutout:'62%'}
+  });
+}
+function drawStatusBar(recs){
+  const cats = Object.keys(CAT_META);
+  const presentTypes = new Set(recs.map(r=>r.facType).filter(Boolean));
+  const TYPE_ORDER = ['S','N','X'];
+  const types = TYPE_ORDER.filter(t=>presentTypes.has(t)).concat([...presentTypes].filter(t=>!TYPE_ORDER.includes(t)).sort());
+  const typeColorMap = {S:COLORS.other, N:COLORS.purple, X:COLORS.warn};
+  const palette = [COLORS.other, COLORS.warn, COLORS.purple, COLORS.ok, COLORS.crit];
+  const datasets = types.length ? types.map((t,i)=>({
+    label:'Type '+t,
+    data: cats.map(c=>recs.filter(r=>lifecycleCategory(r)===c && r.facType===t).length),
+    backgroundColor: typeColorMap[t] || palette[i%palette.length],
+    borderRadius:6, maxBarThickness:26
+  })) : [{data:cats.map(c=>recs.filter(r=>lifecycleCategory(r)===c).length), backgroundColor:cats.map(c=>CAT_META[c].color), borderRadius:6, maxBarThickness:38}];
+  drawChart('chartStatus', {
+    type:'bar',
+    data:{labels:cats.map(c=>CAT_META[c].label), datasets},
+    options:{maintainAspectRatio:false, showValueLabels:true,
+      plugins:{legend:{display:types.length>0, position:'bottom', labels:{color:'#8993AC', boxWidth:12, font:{size:11}}}},
+      scales:{y:{beginAtZero:true,ticks:{precision:0,color:'#8993AC'},grid:{color:'rgba(255,255,255,.06)'}},
+               x:{ticks:{font:{size:10},color:'#8993AC'},grid:{display:false}}}}
+  });
+}
+function drawBgCategoryDoughnut(recs){
+  const counts={};
+  recs.forEach(r=>{ if(!r.sources || !r.sources.bg) return; const k=r.bgCategory||'ไม่ระบุ'; counts[k]=(counts[k]||0)+1; });
+  const labels=Object.keys(counts), data=labels.map(l=>counts[l]);
+  drawChart('chartBgDoc', {
+    type:'doughnut',
+    data:{labels, datasets:[{data, backgroundColor:labels.map((l,i)=>VIVID_PALETTE[i%VIVID_PALETTE.length]), borderWidth:2, borderColor:'#131D33'}]},
+    options:{maintainAspectRatio:false, showValueLabels:true, plugins:{legend:{position:'right', labels:{boxWidth:11,font:{size:10},color:'#E8ECF6'}}}, cutout:'58%'}
+  });
+}
+function fmtNumber(v){
+  if(v==null || v==='') return '—';
+  const n = Number(v);
+  if(!isNaN(n) && String(v).trim()!=='') return n.toLocaleString('en-US');
+  return v;
+}
+function drawGauge(id, percent, color, label){
+  const el = document.getElementById(id); if(!el || typeof Chart==='undefined') return;
+  percent = Math.max(0, Math.min(100, Math.round(percent)));
+  drawChart(id, {
+    type:'doughnut',
+    data:{datasets:[{data:[percent,100-percent], backgroundColor:[color,'rgba(255,255,255,.07)'], borderWidth:0}]},
+    options:{cutout:'74%', rotation:-90, circumference:360, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{enabled:false}},
+      centerText:{text:percent+'%', sub:label, color:'#E8ECF6', subColor:'#8993AC'}}
+  });
+}
+
+/* ================= GAUGES + STATS ================= */
+function typeBreakdown(recs){
+  const counts = {};
+  recs.forEach(r=>{ const t=r.facType||'ไม่ระบุ'; counts[t]=(counts[t]||0)+1; });
+  const types = Object.keys(counts).sort();
+  if(!types.length) return '';
+  return types.map(t=>'Type '+t+': '+counts[t]).join(' · ');
+}
+function statCardsHtml(cards){
+  return cards.map(c=>`<div class="stat card" style="--bar:${c.bar}"><div class="num">${c.num}</div><div class="lbl">${c.lbl}</div>${c.sub?`<div class="sub">${c.sub}</div>`:''}</div>`).join('');
+}
+function renderOverviewStats(recs){
+  const byCat = k=>recs.filter(r=>lifecycleCategory(r)===k).length;
+  const byCatRecs = k=>recs.filter(r=>lifecycleCategory(r)===k);
+  const total = byCat('open') + byCat('temp_closed');
+  const activeRecs = recs.filter(r=>{ const c=lifecycleCategory(r); return c==='open'||c==='temp_closed'; });
+  const distinctCompanies = new Set(recs.map(r=>r.company).filter(Boolean)).size;
+  const openYears = recs.map(r=>Number(r.openYear)).filter(y=>y && !isNaN(y));
+  const latestYear = openYears.length ? Math.max(...openYears) : null;
+  const newlyOpenedRecs = latestYear ? recs.filter(r=>Number(r.openYear)===latestYear) : [];
+  document.getElementById('statGridOverview').innerHTML = statCardsHtml([
+    {num:total, lbl:'โรงงานทั้งหมด (เปิดดำเนินการ+ปิดชั่วคราว)', bar:'#8993AC', sub:typeBreakdown(activeRecs)},
+    {num:byCat('open'), lbl:CAT_META.open.label, bar:CAT_META.open.color, sub:typeBreakdown(byCatRecs('open'))},
+    {num:byCat('temp_closed'), lbl:CAT_META.temp_closed.label, bar:CAT_META.temp_closed.color, sub:typeBreakdown(byCatRecs('temp_closed'))},
+    {num:newlyOpenedRecs.length, lbl:'โรงงานเปิดใหม่'+(latestYear?' (ปี '+latestYear+')':''), bar:COLORS.accent, sub:typeBreakdown(newlyOpenedRecs)},
+    {num:byCat('closed'), lbl:CAT_META.closed.label, bar:CAT_META.closed.color, sub:typeBreakdown(byCatRecs('closed'))},
+    {num:distinctCompanies, lbl:'จำนวนราย บจก./หจก.', bar:COLORS.purple},
+  ]);
+}
+function renderTrackStats(elId, recs, key){
+  const counts = {}; ['ok','warn','crit','expired','other','none'].forEach(c=>counts[c]=0);
+  const byLevel = {}; ['ok','warn','crit','expired','other','none'].forEach(c=>byLevel[c]=[]);
+  recs.forEach(r=>{ const lv=computeDerived(r)[key].level; counts[lv]++; byLevel[lv].push(r); });
+  document.getElementById(elId).innerHTML = statCardsHtml([
+    {num:recs.length, lbl:'โรงงานทั้งหมด', bar:'#8993AC', sub:typeBreakdown(recs)},
+    {num:counts.ok, lbl:LEVEL_META.ok.label, bar:LEVEL_META.ok.color, sub:typeBreakdown(byLevel.ok)},
+    {num:counts.warn, lbl:LEVEL_META.warn.label, bar:LEVEL_META.warn.color, sub:typeBreakdown(byLevel.warn)},
+    {num:counts.crit+counts.expired, lbl:'ใกล้/เกินกำหนด', bar:LEVEL_META.crit.color, sub:typeBreakdown(byLevel.crit.concat(byLevel.expired))},
+    {num:counts.other+counts.none, lbl:'อื่น ๆ / ไม่มีข้อมูล', bar:LEVEL_META.other.color, sub:typeBreakdown(byLevel.other.concat(byLevel.none))},
+  ]);
+}
+function renderTrackGauges(elId, prefix, recs, key){
+  const total = recs.length || 1;
+  const counts = {}; ['ok','warn','crit','expired','other','none'].forEach(c=>counts[c]=0);
+  const otherBreakdown = {};
+  recs.forEach(r=>{
+    const tr = computeDerived(r)[key];
+    counts[tr.level]++;
+    if(tr.level==='other'){
+      const label = (tr.raw||'ไม่ระบุ').trim();
+      otherBreakdown[label] = (otherBreakdown[label]||0)+1;
+    }
+  });
+  const pctOk = counts.ok/total*100;
+  const pctAttn = (counts.warn+counts.crit+counts.expired)/total*100;
+  const pctOther = (counts.other+counts.none)/total*100;
+  const breakdownEntries = Object.entries(otherBreakdown).sort((a,b)=>b[1]-a[1]);
+  let breakdownHtml = breakdownEntries.map(([label,n])=>`<div class="gauge-breakdown-item"><span>${label}</span><span>${n}</span></div>`).join('');
+  if(counts.none>0) breakdownHtml += `<div class="gauge-breakdown-item"><span>ไม่มีข้อมูลเลย</span><span>${counts.none}</span></div>`;
+  document.getElementById(elId).innerHTML = `
+    <div class="gauge-card card"><div class="gwrap"><canvas id="${prefix}Ok"></canvas></div><div class="glabel">ปกติ</div></div>
+    <div class="gauge-card card"><div class="gwrap"><canvas id="${prefix}Attn"></canvas></div><div class="glabel">ต้องติดตาม (เฝ้าระวัง/ใกล้-เกินกำหนด)</div></div>
+    <div class="gauge-card card"><div class="gwrap"><canvas id="${prefix}Other"></canvas></div><div class="glabel">อื่น ๆ / ไม่มีข้อมูล</div>${breakdownHtml?`<div class="gauge-breakdown">${breakdownHtml}</div>`:''}</div>
+  `;
+  drawGauge(prefix+'Ok', pctOk, COLORS.ok, counts.ok+' โรงงาน');
+  drawGauge(prefix+'Attn', pctAttn, COLORS.crit, (counts.warn+counts.crit+counts.expired)+' โรงงาน');
+  drawGauge(prefix+'Other', pctOther, COLORS.other, (counts.other+counts.none)+' โรงงาน');
+}
+
+/* ================= RANKING PANELS ================= */
+const MONTH_ORDER = {
+  'JAN':1,'FEB':2,'MAR':3,'APR':4,'MAY':5,'JUN':6,'JUL':7,'AUG':8,'SEP':9,'OCT':10,'NOV':11,'DEC':12,
+  'ม.ค.':1,'ก.พ.':2,'มี.ค.':3,'เม.ย.':4,'พ.ค.':5,'มิ.ย.':6,'ก.ค.':7,'ส.ค.':8,'ก.ย.':9,'ต.ค.':10,'พ.ย.':11,'ธ.ค.':12
+};
+function monthIndex(m){
+  if(!m) return 0;
+  const key = String(m).trim().toUpperCase();
+  return MONTH_ORDER[key] || MONTH_ORDER[String(m).trim()] || 0;
+}
+function renderYearEventList(elId, recs, statusVal, yearField, monthField){
+  const yearBE = currentBEYear();
+  const list = recs.filter(r=>{
+    const raw = (r.opStatus||'').trim().toUpperCase();
+    return raw===statusVal && Number(r[yearField])===yearBE;
+  }).map(r=>({name:r.factoryName||r.code, month:r[monthField]||'—', mIdx:monthIndex(r[monthField])}));
+  const el = document.getElementById(elId);
+  if(!list.length){ el.innerHTML = '<div class="rank-empty">ไม่มีข้อมูล</div>'; return; }
+  list.sort((a,b)=>b.mIdx-a.mIdx);
+  const maxIdx = Math.max(...list.map(i=>i.mIdx));
+  const curMonthIdx = new Date().getMonth()+1;
+  const itemsHtml = list.map(i=>{
+    const hi = i.mIdx>0 && (i.mIdx===maxIdx || i.mIdx===curMonthIdx);
+    return `<div class="rank-item"><div class="rtop"><span class="rname${hi?' rname-hi':''}">${i.name}</span><span class="rval${hi?' rval-hi':''}">${i.month}</span></div></div>`;
+  }).join('');
+  el.innerHTML = `<div class="rank-scroll">${itemsHtml}</div>`;
+}
+function renderTrackRanking(elId, recs, key, stateKey, maxDays, pageSize){
+  pageSize = pageSize || 10;
+  let withDate = recs.map(r=>({r, t:computeDerived(r)[key]})).filter(x=>x.t.date);
+  if(maxDays!=null) withDate = withDate.filter(x=>x.t.days < maxDays);
+  withDate.sort((a,b)=>a.t.days-b.t.days);
+  const top = withDate.map(x=>({name:(x.r.factoryName||x.r.code)+' ('+x.r.code+')', val:x.t.days}));
+  renderRankList(elId, top, item=>item.val<0?COLORS.expired:item.val<=30?COLORS.crit:item.val<=90?COLORS.warn:COLORS.ok, v=>v<0?('เกิน '+Math.abs(v)+' วัน'):(v+' วัน'), stateKey, pageSize);
+}
+function renderRankList(elId, items, colorFn, valFmt, stateKey, pageSize){
+  const el = document.getElementById(elId);
+  if(!items.length){ el.innerHTML = '<div class="rank-empty">ไม่มีข้อมูล</div>'; return; }
+  pageSize = pageSize || items.length;
+  let page=1, totalPages=1, pageItems=items;
+  if(stateKey){
+    totalPages = Math.max(1, Math.ceil(items.length/pageSize));
+    if(!rankPageState[stateKey]) rankPageState[stateKey]=1;
+    if(rankPageState[stateKey]>totalPages) rankPageState[stateKey]=totalPages;
+    page = rankPageState[stateKey];
+    pageItems = items.slice((page-1)*pageSize, page*pageSize);
+  }
+  const maxAbs = Math.max(...items.map(i=>Math.abs(i.val)), 1);
+  const itemsHtml = pageItems.map(i=>{
+    const pct = Math.max(6, Math.round(Math.abs(i.val)/maxAbs*100));
+    const c = colorFn(i);
+    const valTxt = valFmt ? valFmt(i.val) : i.val;
+    return `<div class="rank-item">
+      <div class="rtop"><span class="rname">${i.name}</span><span class="rval">${valTxt}</span></div>
+      <div class="rank-bar"><div style="width:${pct}%;background:${c}"></div></div>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="rank-scroll">${itemsHtml}</div>` + (stateKey ? `<div class="rank-pager-wrap">${pagerHtml('rank', stateKey, totalPages, page)}</div>` : '');
+}
+function renderNoContractList(elId, recs, stateKey){
+  const list = recs.filter(r=>{
+    const raw = (r.opStatus||'').trim().toUpperCase();
+    return raw==='OPEN' && computeDerived(r).ct.date==null;
+  }).map(r=>({
+    name:(r.factoryName||r.code)+' ('+r.code+')'
+  }));
+  const el = document.getElementById(elId);
+  if(!list.length){ el.innerHTML='<div class="rank-empty">ไม่มีข้อมูล — ทุกโรงงานมีสัญญา</div>'; return; }
+  const pageSize=10;
+  const totalPages=Math.max(1, Math.ceil(list.length/pageSize));
+  if(!rankPageState[stateKey]) rankPageState[stateKey]=1;
+  if(rankPageState[stateKey]>totalPages) rankPageState[stateKey]=totalPages;
+  const page = rankPageState[stateKey];
+  const pageItems = list.slice((page-1)*pageSize, page*pageSize);
+  const itemsHtml = pageItems.map(i=>`<div class="rank-item"><div class="rtop"><span class="rname">${i.name}</span></div></div>`).join('');
+  el.innerHTML = `<div class="rank-scroll">${itemsHtml}</div><div class="rank-pager-wrap">${pagerHtml('rank', stateKey, totalPages, page)}</div>`;
+}
+
+/* ================= TABLE HELPERS ================= */
+function licStatusLabel(track){
+  if(track.level==='none') return 'ไม่มีข้อมูล';
+  if(track.level==='other') return track.raw || '—';
+  return LEVEL_META[track.level] ? LEVEL_META[track.level].label : '—';
+}
+function pillHtml(track, opts){
+  opts = opts || {};
+  if(track.level==='none'){
+    const label = opts.noneLabel || 'ไม่มีข้อมูล';
+    const cls = opts.noneCrit ? 'crit' : 'none';
+    return `<div class="pill ${cls}"><div class="d">${label}</div></div>`;
+  }
+  if(track.level==='other') return `<div class="pill other"><div class="d">${(track.raw||'').slice(0,20)}</div></div>`;
+  const dayTxt = track.days<0 ? `เกิน ${Math.abs(track.days)} วัน` : `อีก ${track.days} วัน`;
+  return `<div class="pill ${track.level}"><div class="d">${fmtDate(track.date)}</div><div class="t">${dayTxt}</div></div>`;
+}
+function opStatusInfo(rec){
+  const m = catMetaFor(lifecycleCategory(rec));
+  return `<span class="status-badge" style="background:${m.color}26;color:${m.color}">${m.label}</span>`;
+}
+let sortState = { overview:{key:'region',dir:1}, bg:{key:'bgDays',dir:1}, license:{key:'licDays',dir:1}, contract:{key:'ctSpecial',dir:1} };
+let pageState = { overview:1, bg:1, license:1, contract:1 };
+let rankPageState = {};
+let tableExpiryFilter = { overview:'all', bg:'all', license:'all', contract:'all' };
+let tableStatusFilter = { overview:'all', bg:'open', license:'open', contract:'open' };
+function applyTableStatusFilter(recs, tab){
+  const val = tableStatusFilter[tab];
+  if(!val || val==='all') return recs;
+  return recs.filter(r=>lifecycleCategory(r)===val);
+}
+function applyExpiryTabFilter(recs, tab){
+  const val = tableExpiryFilter[tab];
+  if(!val || val==='all') return recs;
+  if(val==='nocontract'){
+    return recs.filter(r=>!computeDerived(r).ct.date);
+  }
+  const days = Number(val);
+  if(tab==='overview'){
+    return recs.filter(r=>{
+      const d = computeDerived(r);
+      return ['bg','lic','ct'].some(k=>{ const tr=d[k]; return tr.date && tr.days<=days; });
+    });
+  }
+  const key = tab==='bg' ? 'bg' : tab==='license' ? 'lic' : 'ct';
+  return recs.filter(r=>{ const tr=computeDerived(r)[key]; return tr.date && tr.days<=days; });
+}
+
+function sortList(list, tab){
+  const st = sortState[tab] || {key:'region',dir:1};
+  const key = st.key, dir = st.dir;
+  if(key==='ctSpecial'){
+    return list.slice().sort((a,b)=>{
+      const da = computeDerived(a).ct.days, db = computeDerived(b).ct.days;
+      if(da==null && db==null) return 0;
+      if(da==null) return -1*dir;
+      if(db==null) return 1*dir;
+      return (da-db)*dir;
+    });
+  }
+  return list.slice().sort((a,b)=>{
+    let av,bv;
+    if(['bgDays','licDays','ctDays'].includes(key)){
+      const map={bgDays:'bg',licDays:'lic',ctDays:'ct'};
+      av = computeDerived(a)[map[key]].days; bv = computeDerived(b)[map[key]].days;
+      av = av==null?Infinity:av; bv = bv==null?Infinity:bv;
+    } else if(key==='region'){ av=a.regionOpenfc||a.region||''; bv=b.regionOpenfc||b.region||''; }
+    else { av=(a[key]||'').toString(); bv=(b[key]||'').toString(); }
+    if(av<bv) return -1*dir;
+    if(av>bv) return 1*dir;
+    if(key==='region'){
+      const ac=(a.company||'').toString(), bc=(b.company||'').toString();
+      if(ac<bc) return -1; if(ac>bc) return 1;
+    }
+    return 0;
+  });
+}
+function paginateTable(list, key){
+  const pageSize=10;
+  const totalPages = Math.max(1, Math.ceil(list.length/pageSize));
+  if(!pageState[key]) pageState[key]=1;
+  if(pageState[key]>totalPages) pageState[key]=totalPages;
+  if(pageState[key]<1) pageState[key]=1;
+  const page = pageState[key];
+  return {pageItems:list.slice((page-1)*pageSize,page*pageSize), totalPages, page};
+}
+function pagerHtml(kind, key, totalPages, page){
+  if(totalPages<=1) return '';
+  let btns='';
+  for(let p=1;p<=totalPages;p++){
+    if(totalPages>7 && !(p===1||p===totalPages||Math.abs(p-page)<=1)){
+      if(p===2||p===totalPages-1) btns+='<span class="dots">…</span>';
+      continue;
+    }
+    btns += `<button class="${p===page?'active':''}" data-kind="${kind}" data-key="${key}" data-page="${p}">${p}</button>`;
+  }
+  return `<div class="pager">
+    <button data-kind="${kind}" data-key="${key}" data-page="${Math.max(1,page-1)}" ${page===1?'disabled':''}>‹</button>
+    ${btns}
+    <button data-kind="${kind}" data-key="${key}" data-page="${Math.min(totalPages,page+1)}" ${page===totalPages?'disabled':''}>›</button>
+  </div>`;
+}
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.pager button');
+  if(!btn || btn.disabled) return;
+  const kind = btn.getAttribute('data-kind'), key = btn.getAttribute('data-key'), page = Number(btn.getAttribute('data-page'));
+  if(kind==='table') pageState[key]=page; else rankPageState[key]=page;
+  renderAll();
+});
+
+/* ================= RENDER TABLES ================= */
+function renderOverviewTable(recs){
+  recs = applyExpiryTabFilter(recs, 'overview');
+  recs = applyTableStatusFilter(recs, 'overview');
+  const sorted = sortList(recs, 'overview');
+  const {pageItems, totalPages, page} = paginateTable(sorted, 'overview');
+  document.getElementById('emptyState').style.display = allRecords().length===0 ? 'block' : 'none';
+  document.getElementById('countOverview').textContent = `แสดง ${sorted.length} โรงงาน (หน้า ${page}/${totalPages})`;
+  document.getElementById('tbodyOverview').innerHTML = pageItems.map(r=>{
+    const d = computeDerived(r);
+    return `<tr data-code="${r.code}">
+      <td><span class="badge" style="background:${regionColor(r.regionOpenfc||r.region)}">${r.regionOpenfc||r.region||'—'}</span></td>
+      <td>${r.manager||'—'}</td>
+      <td>${r.company||'—'}</td>
+      <td><div class="code">${r.code}</div></td>
+      <td>${r.factoryName||'—'}</td>
+      <td>${r.facType||'—'}</td>
+      <td>${opStatusInfo(r)}</td>
+      <td>${pillHtml(d.bg)}</td><td>${pillHtml(d.lic)}</td><td>${pillHtml(d.ct)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pagerOverview').innerHTML = pagerHtml('table','overview',totalPages,page);
+  attachRowClicks('tbodyOverview');
+}
+function renderBgTable(recs){
+  recs = applyExpiryTabFilter(recs, 'bg');
+  recs = applyTableStatusFilter(recs, 'bg');
+  const sorted = sortList(recs, 'bg');
+  const {pageItems, totalPages, page} = paginateTable(sorted, 'bg');
+  document.getElementById('countBg').textContent = `แสดง ${sorted.length} โรงงาน (หน้า ${page}/${totalPages})`;
+  document.getElementById('tbodyBg').innerHTML = pageItems.map(r=>{
+    const d = computeDerived(r);
+    return `<tr data-code="${r.code}">
+      <td><span class="badge" style="background:${regionColor(r.regionOpenfc||r.region)}">${r.regionOpenfc||r.region||'—'}</span></td>
+      <td>${r.company||'—'}</td>
+      <td><div class="code">${r.code}</div></td>
+      <td>${r.factoryName||'—'}</td>
+      <td>${r.facType||'—'}</td>
+      <td>${pillHtml(d.bg)}</td>
+      <td>${r.bgCategory||'—'}</td>
+      <td>${fmtNumber(r.bgLimit)}</td>
+      <td>${r.manager||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pagerBg').innerHTML = pagerHtml('table','bg',totalPages,page);
+  attachRowClicks('tbodyBg');
+}
+function renderLicTable(recs){
+  recs = applyExpiryTabFilter(recs, 'license');
+  recs = applyTableStatusFilter(recs, 'license');
+  const sorted = sortList(recs, 'license');
+  const {pageItems, totalPages, page} = paginateTable(sorted, 'license');
+  document.getElementById('countLic').textContent = `แสดง ${sorted.length} โรงงาน (หน้า ${page}/${totalPages})`;
+  document.getElementById('tbodyLic').innerHTML = pageItems.map(r=>{
+    const d = computeDerived(r);
+    return `<tr data-code="${r.code}">
+      <td><span class="badge" style="background:${regionColor(r.regionOpenfc||r.region)}">${r.regionOpenfc||r.region||'—'}</span></td>
+      <td>${r.company||'—'}</td>
+      <td><div class="code">${r.code}</div></td>
+      <td>${r.factoryName||'—'}</td>
+      <td>${r.facType||'—'}</td>
+      <td>${pillHtml(d.lic)}</td>
+      <td>${licStatusLabel(d.lic)}</td>
+      <td>${r.licenseIssue||'—'}</td>
+      <td>${r.manager||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pagerLic').innerHTML = pagerHtml('table','license',totalPages,page);
+  attachRowClicks('tbodyLic');
+}
+function renderCtTable(recs){
+  recs = applyExpiryTabFilter(recs, 'contract');
+  recs = applyTableStatusFilter(recs, 'contract');
+  const sorted = sortList(recs, 'contract');
+  const {pageItems, totalPages, page} = paginateTable(sorted, 'contract');
+  document.getElementById('countCt').textContent = `แสดง ${sorted.length} โรงงาน (หน้า ${page}/${totalPages})`;
+  document.getElementById('tbodyCt').innerHTML = pageItems.map(r=>{
+    const d = computeDerived(r);
+    return `<tr data-code="${r.code}">
+      <td><span class="badge" style="background:${regionColor(r.regionOpenfc||r.region)}">${r.regionOpenfc||r.region||'—'}</span></td>
+      <td>${r.company||'—'}</td>
+      <td><div class="code">${r.code}</div></td>
+      <td>${r.factoryName||'—'}</td>
+      <td>${r.facType||'—'}</td>
+      <td>${fmtDate(r.contractStart ? new Date(r.contractStart) : null)}</td>
+      <td>${pillHtml(d.ct, {noneLabel:'ไม่มีสัญญา', noneCrit:true})}</td>
+      <td>${r.manager||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pagerCt').innerHTML = pagerHtml('table','contract',totalPages,page);
+  attachRowClicks('tbodyCt');
+}
+function attachRowClicks(tbodyId){
+  document.getElementById(tbodyId).querySelectorAll('tr').forEach(tr=>{
+    tr.addEventListener('click', ()=>openModal(tr.getAttribute('data-code')));
+  });
+}
+
+/* ================= MASTER RENDER ================= */
+function renderAll(){
+  populateRegionFilter();
+  buildRegionColorMap();
+  renderSources();
+  const recs = filteredBase();
+  const activeTotal = baseRecords().filter(r=>lifecycleCategory(r)!=='closed').length;
+  document.getElementById('countLabel').textContent = `โรงงานทั้งหมด (เปิดดำเนินการ+ปิดชั่วคราว) ${activeTotal} โรงงาน · แสดงตามตัวกรอง ${recs.length} รายการ`;
+
+  if(activeTab==='overview'){
+    renderOverviewStats(recs);
+    drawRegionDoughnut(recs);
+    drawStatusBar(recs);
+    renderYearEventList('rankNewOpen', recs, 'OPEN', 'openYear', 'openMonth');
+    renderYearEventList('rankNewClosed', recs, 'CLOSE', 'closeYear', 'closeMonth');
+    renderTrackRanking('rankOverviewBg', recs, 'bg', 'ovBg', 90, 5);
+    renderTrackRanking('rankOverviewLic', recs, 'lic', 'ovLic', 90, 5);
+    renderTrackRanking('rankOverviewCt', recs, 'ct', 'ovCt', 90, 5);
+    renderOverviewTable(recs);
+  } else if(activeTab==='bg'){
+    renderTrackGauges('gaugeRowBg','gBg', recs, 'bg');
+    drawLevelBar('chartBgLevel', recs, 'bg');
+    drawYearBar('chartBgYear', recs, 'bg');
+    drawBgCategoryDoughnut(recs);
+    renderTrackRanking('rankBg', recs, 'bg', 'bgTab', 90, 5);
+    renderBgTable(recs);
+  } else if(activeTab==='license'){
+    renderTrackGauges('gaugeRowLic','gLic', recs, 'lic');
+    drawLevelBar('chartLicLevel', recs, 'lic');
+    drawYearBar('chartLicYear', recs, 'lic');
+    renderTrackRanking('rankLic', recs, 'lic', 'licTab', 30, 5);
+    renderLicTable(recs);
+  } else if(activeTab==='contract'){
+    renderTrackGauges('gaugeRowCt','gCt', recs, 'ct');
+    drawLevelBar('chartCtLevel', recs, 'ct');
+    drawYearBar('chartCtYear', recs, 'ct');
+    renderTrackRanking('rankCt', recs, 'ct', 'ctTab', 90, 5);
+    renderNoContractList('rankCtNone', recs, 'ctNone');
+    renderCtTable(recs);
+  }
+}
+
+/* ================= MODAL ================= */
+function openModal(code){
+  const r = state.records[code]; if(!r) return;
+  const d = computeDerived(r);
+  document.getElementById('mTitle').textContent = (r.factoryName||r.code)+' · '+r.code;
+  document.getElementById('mSub').textContent = (r.company||'ไม่มีชื่อ บจก./หจก.')+' · '+(r.regionOpenfc||r.region||'ไม่ระบุกิจการ');
+  const body = document.getElementById('mBody');
+  function trackBlock(title, tr, extra){
+    return `<div class="track"><h4>${title}</h4>
+      <div class="val">${tr.level==='other' ? (tr.raw||'—') : fmtDate(tr.date)}</div>
+      <div class="sub2">${tr.level==='none'?'ไม่มีข้อมูล':tr.level==='other'?'สถานะพิเศษ (ไม่ใช่วันที่)':(tr.days<0?'เกินกำหนด '+Math.abs(tr.days)+' วัน':'เหลือ '+tr.days+' วัน')}</div>
+      ${extra||''}
+    </div>`;
+  }
+  body.innerHTML = `
+    <div class="track-grid">
+      ${trackBlock('วงเงินค้ำประกัน (BG)', d.bg, (r.bgCategory?`<div class="sub2">ประเภท: ${r.bgCategory}</div>`:'')+(r.bgLimit!=null&&r.bgLimit!==''?`<div class="sub2">วงเงินปัจจุบัน: ${r.bgLimit}</div>`:''))}
+      ${trackBlock('Smart License', d.lic, r.licenseIssue?`<div class="sub2">ปัญหา: ${r.licenseIssue}</div>`:'')}
+      ${trackBlock('สัญญาแฟรนไชส์', d.ct, r.contractStart?`<div class="sub2">เริ่มสัญญา: ${fmtDate(new Date(r.contractStart))}</div>`:'')}
+    </div>
+    <div class="info-grid">
+      <div><div class="k">สถานะโรงงาน</div><div class="v">${opStatusInfo(r)} <span style="color:var(--text-soft);font-size:11.5px;">(ค่าดิบ: ${r.opStatus||'—'})</span></div></div>
+      <div><div class="k">จังหวัด</div><div class="v">${r.province||'—'}</div></div>
+      <div><div class="k">ผู้จัดการผลิต</div><div class="v">${r.manager||'—'}</div></div>
+      <div><div class="k">อีเมล</div><div class="v">${r.email||'—'}</div></div>
+      <div><div class="k">ประเภทโรงงาน</div><div class="v">${r.facType||r.bgType||'—'}${r.facType2?(' / '+r.facType2):''}</div></div>
+      <div><div class="k">Agent</div><div class="v">${r.agent||'—'}</div></div>
+      ${r.opNote?`<div style="grid-column:1/-1;"><div class="k">หมายเหตุ (เปิด/ปิด)</div><div class="v">${r.opNote}</div></div>`:''}
+      ${r.bgFollowUp?`<div style="grid-column:1/-1;"><div class="k">ติดตามความคืบหน้า BG/PG</div><div class="v">${r.bgFollowUp}</div></div>`:''}
+    </div>
+    <div class="src-tags">${SOURCE_DEFS.map(def=>`<span class="src-tag ${r.sources[def.key]?'on':''}">${r.sources[def.key]?'✓ ':''}${def.label}</span>`).join('')}</div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+document.getElementById('modalClose').addEventListener('click',()=>document.getElementById('overlay').classList.remove('show'));
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') e.currentTarget.classList.remove('show'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElementById('overlay').classList.remove('show'); });
+
+/* ================= TOAST ================= */
+function showToast(msg, isErr){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div'); el.className='toast'+(isErr?' err':''); el.textContent = msg;
+  wrap.appendChild(el); setTimeout(()=>el.remove(), 6000);
+}
+
+/* ================= EXCEL EXPORT ================= */
+const TOPIC_META = {
+  bg:{label:'BG', dKey:'bg'},
+  license:{label:'Smart License', dKey:'lic'},
+  contract:{label:'สัญญา', dKey:'ct'}
+};
+function buildExportRegionOptions(){
+  const sel = document.getElementById('exportRegion');
+  const cur = sel.value;
+  const regions = [...new Set(baseRecords().map(r=>r.regionOpenfc||r.region).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">ทุกกิจการ</option>' + regions.map(r=>`<option value="${r}">${r}</option>`).join('');
+  if(regions.includes(cur)) sel.value = cur;
+}
+function trackDisplayValue(tr){
+  if(tr.level==='none') return 'ไม่มีข้อมูล';
+  if(tr.level==='other') return tr.raw || '—';
+  return fmtDate(tr.date);
+}
+async function downloadExcel(region, topics, expiryDays){
+  if(typeof ExcelJS==='undefined'){ showToast('ไม่สามารถโหลดไลบรารีสร้างไฟล์ Excel ได้ กรุณาลองใหม่', true); return; }
+  let recs = baseRecords();
+  if(region) recs = recs.filter(r=>(r.regionOpenfc||r.region)===region);
+  if(expiryDays!=null){
+    recs = recs.filter(r=>{
+      const d = computeDerived(r);
+      return topics.some(t=>{ const tr = d[TOPIC_META[t].dKey]; return tr.date && tr.days<=expiryDays; });
+    });
+  }
+  recs = recs.slice().sort((a,b)=>{
+    const ra=(a.regionOpenfc||a.region||''), rb=(b.regionOpenfc||b.region||'');
+    if(ra<rb) return -1; if(ra>rb) return 1;
+    const ca=(a.company||''), cb=(b.company||'');
+    if(ca<cb) return -1; if(ca>cb) return 1;
+    return 0;
+  });
+  if(!recs.length){ showToast('ไม่พบข้อมูลตามเงื่อนไขที่เลือก', true); return; }
+
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('ข้อมูลโรงงาน');
+  const baseCols = ['กิจการ','บจก./หจก.','รหัสโรงงาน','ชื่อโรงงาน','Type'];
+  const topicCols = topics.map(t=>'วันหมดอายุ - '+TOPIC_META[t].label);
+  const header = baseCols.concat(topicCols);
+  ws.addRow(header);
+  recs.forEach(r=>{
+    const d = computeDerived(r);
+    const row = [r.regionOpenfc||r.region||'—', r.company||'—', r.code||'—', r.factoryName||'—', r.facType||'—'];
+    topics.forEach(t=>row.push(trackDisplayValue(d[TOPIC_META[t].dKey])));
+    ws.addRow(row);
+  });
+
+  const headerRow = ws.getRow(1);
+  headerRow.eachCell(cell=>{
+    cell.font = {bold:true, color:{argb:'FFFFFFFF'}};
+    cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF20242A'}};
+    cell.alignment = {vertical:'middle', horizontal:'center'};
+  });
+  const thin = {style:'thin', color:{argb:'FFB9B3A5'}};
+  ws.eachRow(row=>{
+    row.eachCell({includeEmpty:true}, cell=>{ cell.border = {top:thin,left:thin,bottom:thin,right:thin}; });
+  });
+  ws.getColumn(1).width = 14;
+  ws.getColumn(2).width = 34;
+  ws.getColumn(3).width = 14;
+  ws.getColumn(4).width = 26;
+  ws.getColumn(5).width = 8;
+  for(let i=0;i<topics.length;i++) ws.getColumn(6+i).width = 20;
+  ws.views = [{state:'frozen', ySplit:1}];
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const regionTag = region ? region.replace(/\s+/g,'') : 'ทั้งหมด';
+  a.href = url; a.download = `fc-data-${regionTag}.xlsx`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('ดาวน์โหลดไฟล์ Excel สำเร็จ');
+}
+
+/* ================= EVENTS ================= */
+document.getElementById('exportBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  buildExportRegionOptions();
+  document.getElementById('exportPanel').classList.toggle('show');
+});
+document.getElementById('exportPanel').addEventListener('click', e=>e.stopPropagation());
+document.addEventListener('click', ()=> document.getElementById('exportPanel').classList.remove('show'));
+document.getElementById('exportConfirmBtn').addEventListener('click', async ()=>{
+  const region = document.getElementById('exportRegion').value;
+  const topics = Array.from(document.querySelectorAll('#exportPanel input[type=checkbox]:checked')).map(cb=>cb.value);
+  const expiryVal = document.getElementById('exportExpiry').value;
+  const expiryDays = expiryVal==='all' ? null : Number(expiryVal);
+  if(!topics.length){ showToast('กรุณาเลือกอย่างน้อย 1 เรื่องที่ต้องการดาวน์โหลด', true); return; }
+  document.getElementById('exportConfirmBtn').textContent = 'กำลังสร้างไฟล์...';
+  try{ await downloadExcel(region, topics, expiryDays); }
+  finally{
+    document.getElementById('exportConfirmBtn').textContent = '⇩ ดาวน์โหลดไฟล์ Excel';
+    document.getElementById('exportPanel').classList.remove('show');
+  }
+});
+document.getElementById('resetBtn').addEventListener('click', async ()=>{
+  await loadAllData();
+});
+document.getElementById('searchBox').addEventListener('input', renderAll);
+document.getElementById('regionFilter').addEventListener('change', renderAll);
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab = btn.getAttribute('data-tab');
+    document.getElementById('tab-'+activeTab).classList.add('active');
+    renderAll();
+  });
+});
+const TABLE_TO_TAB = {tableOverview:'overview', tableBg:'bg', tableLic:'license', tableCt:'contract'};
+document.querySelectorAll('table thead th').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const table = th.closest('table');
+    const tab = TABLE_TO_TAB[table.id];
+    const k = th.getAttribute('data-k');
+    const st = sortState[tab];
+    if(st.key===k) st.dir*=-1; else { st.key=k; st.dir=1; }
+    pageState[tab]=1;
+    renderAll();
+  });
+});
+document.querySelectorAll('.mini-tabs[data-tab]').forEach(container=>{
+  container.addEventListener('click', e=>{
+    const btn = e.target.closest('.mini-tab');
+    if(!btn) return;
+    const tab = container.getAttribute('data-tab');
+    tableExpiryFilter[tab] = btn.getAttribute('data-days');
+    container.querySelectorAll('.mini-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    pageState[tab] = 1;
+    renderAll();
+  });
+});
+document.querySelectorAll('.mini-tabs[data-statustab]').forEach(container=>{
+  container.addEventListener('click', e=>{
+    const btn = e.target.closest('.mini-tab');
+    if(!btn) return;
+    const tab = container.getAttribute('data-statustab');
+    tableStatusFilter[tab] = btn.getAttribute('data-status');
+    container.querySelectorAll('.mini-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    pageState[tab] = 1;
+    renderAll();
+  });
+});
+
+/* ================= INIT ================= */
+(async function init(){
+  await loadAllData();
+})();
+</script>
+</body>
+</html>
