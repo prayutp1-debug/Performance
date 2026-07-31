@@ -728,28 +728,50 @@ const CANDIDATE_FILES = [
   'Team.xlsx', 'TEAM.xlsx', 'team.xlsx',
   'ส_ญญาFC.xlsx', 'สัญญา_FC.xlsx', 'ส_ญญา_FC.xlsx', 'สัญญาFC.xlsx', 'Contract_FC.xlsx', 'ContractFC.xlsx'
 ];
+function clampSheetRange(ws, maxCols, maxRows){
+  if(!ws || !ws['!ref']) return;
+  try{
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    let changed = false;
+    if(range.e.c > maxCols){ range.e.c = maxCols; changed = true; }
+    if(range.e.r > maxRows){ range.e.r = maxRows; changed = true; }
+    if(changed) ws['!ref'] = XLSX.utils.encode_range(range);
+  }catch(e){ /* leave range as-is if anything looks off */ }
+}
 async function loadAllData(){
   state = {records:{}, meta:{}};
-  const foundFiles = [];
-  for(const fname of CANDIDATE_FILES){
+  showToast('กำลังโหลดข้อมูล...');
+  // Fetch + parse every candidate file in parallel — this is the slow part (network + a
+  // couple of the source files are several MB due to leftover formatting on unused cells),
+  // so overlapping the requests instead of doing them one-by-one cuts load time a lot.
+  const attempts = await Promise.all(CANDIDATE_FILES.map(async fname=>{
     try{
       const resp = await fetch(encodeURI(fname), {cache:'no-store'});
-      if(!resp.ok) continue;
+      if(!resp.ok) return null;
       const buf = await resp.arrayBuffer();
-      const wb = XLSX.read(buf, {type:'array', cellDates:true});
-      const results = {};
-      let any = false;
-      wb.SheetNames.forEach(name=>{
-        const t = detectAndParseSheet(wb.Sheets[name], fname, results);
-        if(t) any = true;
-      });
-      if(!any) continue;
-      for(const type in results){
-        mergeParsed(type, results[type]);
-        state.meta[type] = {fileName:fname, rows:results[type].length, updatedAt:new Date().toISOString()};
-      }
-      foundFiles.push(fname);
-    }catch(e){ /* file not present, or fetch blocked (e.g. opened via file://) */ }
+      // sheetRows caps how many rows SheetJS even bothers parsing per sheet — our real
+      // data is at most a few hundred rows, so this alone skips a lot of dead weight.
+      const wb = XLSX.read(buf, {type:'array', cellDates:true, sheetRows:3000});
+      wb.SheetNames.forEach(name=>clampSheetRange(wb.Sheets[name], 60, 3000));
+      return {fname, wb};
+    }catch(e){ return null; }
+  }));
+  const foundFiles = [];
+  for(const item of attempts){
+    if(!item) continue;
+    const {fname, wb} = item;
+    const results = {};
+    let any = false;
+    wb.SheetNames.forEach(name=>{
+      const t = detectAndParseSheet(wb.Sheets[name], fname, results);
+      if(t) any = true;
+    });
+    if(!any) continue;
+    for(const type in results){
+      mergeParsed(type, results[type]);
+      state.meta[type] = {fileName:fname, rows:results[type].length, updatedAt:new Date().toISOString()};
+    }
+    foundFiles.push(fname);
   }
   if(foundFiles.length===0){
     showToast('ไม่พบไฟล์ Excel ในโฟลเดอร์เดียวกับหน้านี้ กรุณาวางไฟล์ BG.xlsx, OPENFC.xlsx, SmartLicense.xlsx และไฟล์สัญญา ไว้ในโฟลเดอร์เดียวกัน แล้วเปิดผ่านเว็บเซิร์ฟเวอร์ (เช่น GitHub Pages) ไม่ใช่เปิดไฟล์ตรง ๆ', true);
