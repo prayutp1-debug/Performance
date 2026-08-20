@@ -182,7 +182,38 @@
   .src-tag{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--none-bg);color:var(--none);}
   .src-tag.on{background:var(--ok-bg);color:var(--ok);}
 
+  .plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+  .plan-region-row{margin-bottom:22px;}
+  .plan-region-row:last-child{margin-bottom:0;}
+  .plan-region-title{font-family:'Kanit',sans-serif;font-size:17px;font-weight:600;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .plan-region-count{font-weight:400;color:var(--text-soft);font-size:14px;}
+  .plan-region-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+  .plan-card{padding:18px;display:flex;flex-direction:column;gap:12px;}
+  .plan-card.cancelled{opacity:.85;}
+  .plan-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .plan-card-title{font-family:'Kanit',sans-serif;font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .plan-type-badge{font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;color:var(--teal);background:rgba(47,217,196,.14);padding:2px 9px;border-radius:20px;}
+  .plan-card-sub{font-size:13px;color:var(--text-soft);margin-top:2px;}
+  .plan-card-row{display:flex;flex-direction:column;gap:5px;}
+  .plan-card-row .flabel{font-size:14.5px;}
+  .plan-card-row select,.plan-card-row textarea{font-family:'Sarabun',sans-serif;font-size:15px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--panel-hi);color:var(--text);resize:vertical;}
+  .plan-card-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:12px;}
+  .plan-updated{font-size:12px;color:var(--text-dim);}
+  .btn-sm{padding:8px 14px;font-size:13.5px;}
+  .plan-note-view{font-size:14px;color:var(--text-soft);background:var(--panel-hi);border-radius:8px;padding:9px 11px;white-space:pre-wrap;}
+  #tablePlanOpen{font-size:16px;}
+  #tablePlanOpen thead th{font-size:14px;padding:13px 14px;}
+  #tablePlanOpen tbody td{padding:13px 14px;}
+  #tablePlanOpen .pill{font-size:14px;padding:6px 12px;min-width:120px;}
+  #tablePlanOpen .pill .d{font-size:15px;}
+  #tablePlanOpen .pill .t{font-size:12px;}
   .toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:60;}
+  .source-note-wrap{position:relative;}
+  .source-note-btn{cursor:default;}
+  .source-note-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--panel-hi);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);padding:16px;z-index:60;min-width:340px;max-width:440px;}
+  .source-note-wrap:hover .source-note-panel,.source-note-wrap:focus-within .source-note-panel{display:block;}
+  .source-note-title{font-family:'Kanit',sans-serif;font-size:14px;font-weight:600;margin-bottom:6px;}
+  .source-note-desc{font-size:11.5px;color:var(--text-soft);margin-bottom:12px;line-height:1.5;}
   .toast{background:var(--panel-hi);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:13px;max-width:320px;box-shadow:0 10px 24px rgba(0,0,0,.4);}
   .toast.err{background:rgba(255,90,110,.18);border-color:var(--red);}
   footer{text-align:center;color:var(--text-dim);font-size:12px;padding:20px;}
@@ -198,6 +229,14 @@
       <p>ฐานข้อมูลหลักอ้างอิงจากไฟล์ OPEN FC เชื่อมโยงกับวงเงินค้ำประกัน (BG), ใบอนุญาต Smart License และสัญญาแฟรนไชส์ ด้วยรหัสโรงงานหรือชื่อ บจก./หจก.</p>
     </div>
     <div class="top-actions">
+      <div class="source-note-wrap" id="sourceNoteWrap">
+        <span class="btn btn-quiet source-note-btn" id="sourceNoteBtn" tabindex="0">ℹ️ แหล่งข้อมูล</span>
+        <div class="source-note-panel" id="sourceNotePanel">
+          <div class="source-note-title">แหล่งข้อมูลที่ระบบรู้จัก</div>
+          <div class="source-note-desc">อ่านข้อมูลอัตโนมัติจากไฟล์ Excel ในโฟลเดอร์เดียวกับหน้านี้ทุกครั้งที่เปิด (BG.xlsx, OPENFC.xlsx, SmartLicense.xlsx, ไฟล์สัญญา) — แก้ไข/แทนที่ไฟล์บน GitHub แล้วรีเฟรชหน้านี้เพื่อดูข้อมูลล่าสุด</div>
+          <div class="source-grid" id="sourceGrid"></div>
+        </div>
+      </div>
       <span id="lastSync" class="btn-quiet btn" style="cursor:default;">ยังไม่มีข้อมูล</span>
       <div class="msel" style="position:relative;">
         <button class="btn btn-ghost" id="exportBtn" type="button">⇩ ดาวน์โหลด ▾</button>
@@ -224,14 +263,6 @@
 </header>
 
 <main>
-  <section class="sources card">
-    <div class="sources-head">
-      <h2>แหล่งข้อมูลที่ระบบรู้จัก</h2>
-      <span class="hint">อ่านข้อมูลอัตโนมัติจากไฟล์ Excel ในโฟลเดอร์เดียวกับหน้านี้ทุกครั้งที่เปิด (BG.xlsx, OPENFC.xlsx, SmartLicense.xlsx, ไฟล์สัญญา) — แก้ไข/แทนที่ไฟล์บน GitHub แล้วรีเฟรชหน้านี้เพื่อดูข้อมูลล่าสุด</span>
-    </div>
-    <div class="source-grid" id="sourceGrid"></div>
-  </section>
-
   <div class="filter-bar card">
     <div class="fgroup" style="flex:1;min-width:220px;">
       <span class="flabel">ค้นหา</span>
@@ -241,12 +272,18 @@
       <span class="flabel">กิจการ (จาก OPEN FC)</span>
       <select id="regionFilter"><option value="">ทุกกิจการ</option></select>
     </div>
+    <div class="fgroup msel">
+      <span class="flabel">Type (จาก OPEN FC, เลือกได้หลายอัน)</span>
+      <button type="button" class="msel-btn" id="typeMselBtn">ทุก Type ▾</button>
+      <div class="msel-panel" id="typeMselPanel"></div>
+    </div>
     <div class="spacer"></div>
     <span class="hint" id="countLabel" style="font-size:12px;color:var(--text-soft);"></span>
   </div>
 
   <div class="tabs" id="tabs">
     <button class="tab-btn active" data-tab="overview">จำนวนโรงงาน</button>
+    <button class="tab-btn" data-tab="plan">แผนตั้งโรงงานใหม่</button>
     <button class="tab-btn" data-tab="bg">BG</button>
     <button class="tab-btn" data-tab="license">Smart License</button>
     <button class="tab-btn" data-tab="contract">สัญญา</button>
@@ -398,6 +435,50 @@
       <div id="pagerCt"></div>
     </div>
   </div>
+
+  <!-- TAB: PLAN NEW PLANT -->
+  <div class="tab-content" id="tab-plan">
+    <div class="filter-bar card" style="margin-bottom:16px;">
+      <div class="fgroup" style="min-width:220px;">
+        <span class="flabel">กิจการ</span>
+        <select id="planRegionFilter"><option value="">ทุกกิจการ</option></select>
+      </div>
+      <div class="spacer"></div>
+      <span class="hint" id="planCountLabel" style="font-size:12px;color:var(--text-soft);"></span>
+      <button type="button" class="btn btn-ghost" id="planExportBtn">⇩ ดาวน์โหลด Excel</button>
+    </div>
+    <div class="stat-grid" id="planStatGrid"></div>
+
+    <div class="card" style="padding:16px 18px;margin-bottom:16px;">
+      <h3 style="margin:0 0 4px;font-size:15px;">โรงงานที่เปิดดำเนินการแล้ว</h3>
+      <p style="margin:0 0 12px;font-size:12.5px;color:var(--text-soft);">รายชื่อบริษัทและโรงงานตามแผน ที่เปิดดำเนินการเรียบร้อยแล้ว พร้อมเดือนที่เปิด</p>
+      <div class="table-wrap" style="border:1px solid var(--border);border-radius:10px;overflow:auto;">
+        <table id="tablePlanOpen">
+          <thead><tr>
+            <th>กิจการ</th><th>บริษัท</th><th>ชื่อโรงงาน</th><th>จังหวัด</th><th>Type</th><th>เดือนที่เปิด</th>
+          </tr></thead>
+          <tbody id="planOpenBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="padding:16px 18px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:15px;">โรงงานที่กำลังดำเนินการ (ON PROCESS)</h3>
+          <p style="margin:0;font-size:12.5px;color:var(--text-soft);">สามารถเลื่อนเดือนที่คาดว่าจะเปิด บันทึกความคืบหน้า หรือยกเลิกโครงการได้ — ข้อมูลที่แก้ไขจะถูกบันทึกไว้ในเบราว์เซอร์นี้</p>
+        </div>
+        <button type="button" class="btn btn-accent btn-sm" id="planAddBtn" style="flex:none;">＋ เพิ่มโรงงานใหม่</button>
+      </div>
+      <div class="plan-grid" id="planProcessWrap" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="card" style="padding:16px 18px;">
+      <h3 style="margin:0 0 4px;font-size:15px;">โครงการที่ยกเลิกแล้ว</h3>
+      <p style="margin:0 0 12px;font-size:12.5px;color:var(--text-soft);">สามารถกดเปิดใช้งานโครงการอีกครั้งได้หากมีการเปลี่ยนแปลงแผน</p>
+      <div class="plan-grid" id="planCancelWrap"></div>
+    </div>
+  </div>
 </main>
 
 <footer>ข้อมูลถูกเก็บไว้ในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการส่งไฟล์ออกไปที่อื่น · โหลดข้อมูลเริ่มต้นจากไฟล์ที่แนบไว้ล่าสุดแล้ว อัปโหลดไฟล์ใหม่เมื่อต้องการอัปเดต</footer>
@@ -422,6 +503,7 @@ const SOURCE_DEFS = [
   {key:'license', label:'ใบอนุญาต Smart License (HardLock)', signature:h=>h.includes('รหัสรง.')&&h.includes('HL สิ้นสุด')},
   {key:'contract',label:'สัญญาแฟรนไชส์ (สัญญา FC)', signature:h=>h.includes('FCPLNO')&&h.includes('อายุสัญญา')},
   {key:'team',    label:'ผู้จัดการผลิต (Team)', signature:h=>h.includes('ผจก.ผลิต')&&!h.includes('บจก./หจก.')},
+  {key:'plan',    label:'แผนการตั้งโรงงานใหม่ (Plan New Plant)', signature:h=>h.includes('วันที่คาดว่าจะเปิดผลิต')&&h.includes('การดำเนินการ')},
 ];
 const COLORS = {ok:'#33D17A', warn:'#FFC94A', crit:'#FF5A6E', expired:'#B23A4C', other:'#4C8DFF', none:'#5D6B8A', accent:'#2FD9C4', purple:'#9B7BFF'};
 const CAT_META = {
@@ -622,7 +704,9 @@ function parseByType(type, rows, headerRow, results){
     const cRegion=getHeaderIdx(headers,'กิจการ'), cOwner=getHeaderIdx(headers,'รายชื่อ OWNER');
     const cCode=getHeaderIdx(headers,'รหัส2'), cFacName=getHeaderIdx(headers,'ชื่อโรงงาน');
     const cProvince=getHeaderIdx(headers,'จังหวัด'), cType=getHeaderIdx(headers,'TYPE','first');
-    const cType2=getHeaderIdx(headers,'TYPE','last'), cStatus=getHeaderIdx(headers,'สถานะ');
+    let cType2=getHeaderIdx(headers,'TYPE2');
+    if(cType2<0) cType2=getHeaderIdx(headers,'TYPE','last');
+    const cStatus=getHeaderIdx(headers,'สถานะ');
     const cAgent=getHeaderIdx(headers,'AGENT'), cOpenM=getHeaderIdx(headers,'เดือน'), cOpenY=getHeaderIdx(headers,'ปีที่เปิดโรงงาน');
     const cCloseM=getHeaderIdx(headers,'เดือน3'), cCloseY=getHeaderIdx(headers,'ปีที่ปิดโรงงาน');
     const cNote=getHeaderIdx(headers,'หมายเหตุ');
@@ -671,9 +755,24 @@ function parseByType(type, rows, headerRow, results){
                  contractReason: cReason>=0 ? s(row[cReason]) : ''});
     }
   }
+  else if(type==='plan'){
+    const cRegion=getHeaderIdx(headers,'กิจการ'), cFacName=getHeaderIdx(headers,'ชื่อโรงงาน');
+    const cProvince=getHeaderIdx(headers,'จังหวัด'), cType=getHeaderIdx(headers,'Type');
+    const cComp=getHeaderIdx(headers,'บริษัท'), cOpenM=getHeaderIdx(headers,'วันที่คาดว่าจะเปิดผลิต');
+    const cStatus=getHeaderIdx(headers,'Status'), cNote=getHeaderIdx(headers,'การดำเนินการ');
+    for(let r=headerRow+1;r<rows.length;r++){
+      const row=rows[r]; if(!row) continue;
+      const facName=s(row[cFacName]); if(!facName) continue;
+      out.push({region:s(row[cRegion]), factoryName:facName, province:s(row[cProvince]), type:s(row[cType]),
+                 company:s(row[cComp]), openMonth:s(row[cOpenM]), status:s(row[cStatus]), note:s(row[cNote])});
+    }
+  }
   else if(type==='team'){
     let cCode = headers.findIndex(h=>h.includes('รหัส'));
-    let cMgr = getHeaderIdx(headers,'ผจก.ผลิต');
+    // Header text in Team.xlsx is a compound label like "ผจก.ฟช., ผจก.ผลิต CPAC" —
+    // an exact match on 'ผจก.ผลิต' never hits, so search by substring instead.
+    let cMgr = headers.findIndex(h=>h.includes('ผจก.ผลิต'));
+    if(cMgr<0) cMgr = headers.findIndex(h=>h.includes('ผจก.ฟช.'));
     if(cMgr<0) cMgr = 5; // fall back to column F
     for(let r=headerRow+1;r<rows.length;r++){
       const row=rows[r]; if(!row) continue;
@@ -726,7 +825,8 @@ const CANDIDATE_FILES = [
   'OPENFC.xlsx',
   'SmartLicense.xlsx',
   'Team.xlsx', 'TEAM.xlsx', 'team.xlsx',
-  'ส_ญญาFC.xlsx', 'สัญญา_FC.xlsx', 'ส_ญญา_FC.xlsx', 'สัญญาFC.xlsx', 'Contract_FC.xlsx', 'ContractFC.xlsx'
+  'ส_ญญาFC.xlsx', 'สัญญา_FC.xlsx', 'ส_ญญา_FC.xlsx', 'สัญญาFC.xlsx', 'Contract_FC.xlsx', 'ContractFC.xlsx',
+  'Plannewplant.xlsx', 'PlanNewPlant.xlsx', 'planNewPlant.xlsx', 'PLANNEWPLANT.xlsx'
 ];
 function clampSheetRange(ws, maxCols, maxRows){
   if(!ws || !ws['!ref']) return;
@@ -739,7 +839,7 @@ function clampSheetRange(ws, maxCols, maxRows){
   }catch(e){ /* leave range as-is if anything looks off */ }
 }
 async function loadAllData(){
-  state = {records:{}, meta:{}};
+  state = {records:{}, meta:{}, planRaw:[]};
   showToast('กำลังโหลดข้อมูล...');
   // Fetch + parse every candidate file in parallel — this is the slow part (network + a
   // couple of the source files are several MB due to leftover formatting on unused cells),
@@ -768,7 +868,20 @@ async function loadAllData(){
     });
     if(!any) continue;
     for(const type in results){
-      mergeParsed(type, results[type]);
+      if(type==='plan'){
+        // OPENFC.xlsx sometimes ships its own copy of the PLAN sheet alongside the
+        // standalone Plannewplant.xlsx — dedupe so the same project doesn't appear twice.
+        state.planRaw = state.planRaw||[];
+        state._planSeen = state._planSeen||new Set();
+        results[type].forEach(row=>{
+          const key = normCode(row.company)+'::'+normCode(row.factoryName)+'::'+normCode(row.province);
+          if(state._planSeen.has(key)) return;
+          state._planSeen.add(key);
+          state.planRaw.push(row);
+        });
+      } else {
+        mergeParsed(type, results[type]);
+      }
       state.meta[type] = {fileName:fname, rows:results[type].length, updatedAt:new Date().toISOString()};
     }
     foundFiles.push(fname);
@@ -790,6 +903,7 @@ function computeDerived(rec){
 }
 function allRecords(){ return Object.values(state.records); }
 function baseRecords(){ return allRecords().filter(r=>r.sources && r.sources.openfc); }
+let selectedTypes = new Set(['S','N','X']);
 function currentFilters(){
   return { q: document.getElementById('searchBox').value.trim().toLowerCase(),
     region: document.getElementById('regionFilter').value };
@@ -797,6 +911,7 @@ function currentFilters(){
 function matchesSearchRegion(r, f){
   const region = r.regionOpenfc || r.region;
   if(f.region && region!==f.region) return false;
+  if(selectedTypes.size>0 && !selectedTypes.has(r.facType||'')) return false;
   if(f.q){
     const hay = (r.code+' '+r.factoryName+' '+r.company+' '+(r.facType||'')+' '+(r.manager||'')).toLowerCase();
     if(!hay.includes(f.q)) return false;
@@ -815,6 +930,30 @@ function populateRegionFilter(){
   const regions = [...new Set(baseRecords().map(r=>r.regionOpenfc||r.region).filter(Boolean))].sort();
   sel.innerHTML = '<option value="">ทุกกิจการ</option>' + regions.map(r=>`<option value="${r}">${r}</option>`).join('');
   if(regions.includes(cur)) sel.value = cur;
+}
+function populateTypeFilter(){
+  const panel = document.getElementById('typeMselPanel');
+  const types = [...new Set(baseRecords().map(r=>r.facType).filter(Boolean))].sort();
+  // drop any previously-selected type that no longer exists in the data
+  [...selectedTypes].forEach(t=>{ if(!types.includes(t)) selectedTypes.delete(t); });
+  panel.innerHTML = types.map(t=>{
+    const checked = selectedTypes.has(t) ? 'checked' : '';
+    return `<label><input type="checkbox" value="${t}" ${checked}> Type ${t}</label>`;
+  }).join('') || '<div class="rank-empty">ไม่มีข้อมูล Type</div>';
+  panel.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) selectedTypes.add(cb.value); else selectedTypes.delete(cb.value);
+      updateTypeMselBtnLabel();
+      renderAll();
+    });
+  });
+  updateTypeMselBtnLabel();
+}
+function updateTypeMselBtnLabel(){
+  const btn = document.getElementById('typeMselBtn');
+  const totalTypes = new Set(baseRecords().map(r=>r.facType).filter(Boolean)).size;
+  const n = selectedTypes.size;
+  btn.textContent = (n===0 || n>=totalTypes ? 'ทุก Type' : n+' Type ที่เลือก') + ' ▾';
 }
 
 /* ================= SOURCES ================= */
@@ -1295,6 +1434,7 @@ function attachRowClicks(tbodyId){
 /* ================= MASTER RENDER ================= */
 function renderAll(){
   populateRegionFilter();
+  populateTypeFilter();
   buildRegionColorMap();
   renderSources();
   const recs = filteredBase();
@@ -1331,7 +1471,273 @@ function renderAll(){
     renderTrackRanking('rankCt', recs, 'ct', 'ctTab', 90, 5);
     renderNoContractList('rankCtNone', recs, 'ctNone');
     renderCtTable(recs);
+  } else if(activeTab==='plan'){
+    renderPlanTab();
   }
+}
+
+/* ================= PLAN NEW PLANT (แผนการตั้งโรงงานใหม่) ================= */
+const PLAN_STORAGE_KEY = 'fcPlanOverrides_v1';
+const PLAN_EXTRA_STORAGE_KEY = 'fcPlanExtraRows_v1';
+const MONTHS_TH = [
+  {v:'JAN',l:'ม.ค.'},{v:'FEB',l:'ก.พ.'},{v:'MAR',l:'มี.ค.'},{v:'APR',l:'เม.ย.'},
+  {v:'MAY',l:'พ.ค.'},{v:'JUN',l:'มิ.ย.'},{v:'JUL',l:'ก.ค.'},{v:'AUG',l:'ส.ค.'},
+  {v:'SEP',l:'ก.ย.'},{v:'OCT',l:'ต.ค.'},{v:'NOV',l:'พ.ย.'},{v:'DEC',l:'ธ.ค.'}
+];
+function monthLabel(v){ const m=MONTHS_TH.find(x=>x.v===String(v||'').toUpperCase()); return m?m.l:(v||'—'); }
+const REGION_ORDER = ['ตะวันออก','เหนือ','อีสาน','ใต้'];
+function groupByRegionOrdered(list){
+  const byRegion = {};
+  list.forEach(p=>{ const r=p.region||'ไม่ระบุกิจการ'; (byRegion[r]=byRegion[r]||[]).push(p); });
+  const orderedKeys = REGION_ORDER.filter(r=>byRegion[r]);
+  const leftoverKeys = Object.keys(byRegion).filter(r=>!REGION_ORDER.includes(r)).sort((a,b)=>a.localeCompare(b,'th'));
+  return orderedKeys.concat(leftoverKeys).map(r=>({region:r, items:byRegion[r]}));
+}
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function loadPlanOverrides(){
+  try{ return JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY)||'{}'); }catch(e){ return {}; }
+}
+function savePlanOverrides(obj){
+  try{ localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(obj)); }catch(e){ showToast('ไม่สามารถบันทึกข้อมูลลงเบราว์เซอร์ได้', true); }
+}
+function planKeyFor(p, idx){
+  if(p.__key) return p.__key;
+  const k = normCode(p.company)+'::'+normCode(p.factoryName)+'::'+normCode(p.province);
+  return k && k!=='::::' ? k : ('PLANROW_'+idx);
+}
+function loadPlanExtraRows(){
+  try{ return JSON.parse(localStorage.getItem(PLAN_EXTRA_STORAGE_KEY)||'[]'); }catch(e){ return []; }
+}
+function savePlanExtraRows(arr){
+  try{ localStorage.setItem(PLAN_EXTRA_STORAGE_KEY, JSON.stringify(arr)); }catch(e){ showToast('ไม่สามารถบันทึกข้อมูลลงเบราว์เซอร์ได้', true); }
+}
+function addPlanExtraRow(row){
+  const rows = loadPlanExtraRows();
+  row.__key = 'EXTRA_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+  rows.push(row);
+  savePlanExtraRows(rows);
+  return row.__key;
+}
+function normalizePlanStatus(v){
+  const u = String(v||'').toUpperCase();
+  if(u.includes('CANCEL')) return 'CANCEL';
+  if(u.includes('ON')) return 'ON PROCESS';
+  if(u.includes('OPEN')) return 'OPEN';
+  return u || 'ON PROCESS';
+}
+function planSetOverride(key, patch){
+  const overrides = loadPlanOverrides();
+  overrides[key] = Object.assign({}, overrides[key], patch, {updatedAt:new Date().toISOString()});
+  savePlanOverrides(overrides);
+}
+function computePlanRecords(){
+  const overrides = loadPlanOverrides();
+  const extra = loadPlanExtraRows();
+  const all = (state.planRaw||[]).concat(extra);
+  return all.map((p,idx)=>{
+    const key = planKeyFor(p, idx);
+    const ov = overrides[key] || {};
+    const status = ov.status!=null ? ov.status : normalizePlanStatus(p.status);
+    return {
+      key, region:p.region, company:p.company, factoryName:p.factoryName, province:p.province, type:p.type,
+      openMonth: (ov.month!=null ? ov.month : p.openMonth) || '',
+      status, note: (ov.note!=null ? ov.note : p.note) || '',
+      updatedAt: ov.updatedAt || null
+    };
+  });
+}
+function renderPlanTab(){
+  const all = computePlanRecords();
+  const regionSel = document.getElementById('planRegionFilter');
+  if(regionSel){
+    const cur = regionSel.value;
+    const regions = [...new Set(all.map(p=>p.region).filter(Boolean))].sort();
+    regionSel.innerHTML = '<option value="">ทุกกิจการ</option>' + regions.map(r=>`<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
+    if(regions.includes(cur)) regionSel.value = cur;
+  }
+  const regionFilterVal = regionSel ? regionSel.value : '';
+  const list = regionFilterVal ? all.filter(p=>p.region===regionFilterVal) : all;
+  const byRegionSort = (a,b)=>String(a.region||'').localeCompare(String(b.region||''),'th');
+
+  const openList = list.filter(p=>p.status==='OPEN');
+  const processList = list.filter(p=>p.status==='ON PROCESS');
+  const cancelList = list.filter(p=>p.status==='CANCEL');
+
+  const statGrid = document.getElementById('planStatGrid');
+  if(statGrid){
+    statGrid.innerHTML = statCardsHtml([
+      {num:list.length, lbl:'แผนทั้งหมด', bar:'#8993AC'},
+      {num:openList.length, lbl:'เปิดดำเนินการแล้ว', bar:COLORS.ok},
+      {num:processList.length, lbl:'กำลังดำเนินการ (ON PROCESS)', bar:COLORS.warn},
+      {num:cancelList.length, lbl:'ยกเลิกแล้ว', bar:COLORS.crit},
+    ]);
+  }
+
+  const countLabel = document.getElementById('planCountLabel');
+  if(countLabel){
+    countLabel.textContent = all.length
+      ? `ข้อมูลแผนทั้งหมด ${all.length} โครงการ · แสดงตามตัวกรอง ${list.length} รายการ`
+      : 'ยังไม่พบไฟล์ Plannewplant.xlsx ในโฟลเดอร์เดียวกับหน้านี้';
+  }
+
+  const openBody = document.getElementById('planOpenBody');
+  if(openBody){
+    openBody.innerHTML = openList.length ? openList.slice().sort(byRegionSort).map(p=>`
+      <tr>
+        <td>${escapeHtml(p.region)||'—'}</td><td>${escapeHtml(p.company)||'—'}</td><td>${escapeHtml(p.factoryName)||'—'}</td>
+        <td>${escapeHtml(p.province)||'—'}</td><td>${escapeHtml(p.type)||'—'}</td>
+        <td><span class="pill ok"><span class="d">${monthLabel(p.openMonth)}</span></span></td>
+      </tr>`).join('')
+      : '<tr><td colspan="6" style="text-align:center;color:var(--text-soft);padding:24px;">ยังไม่มีโรงงานที่เปิดดำเนินการแล้วในแผนนี้</td></tr>';
+  }
+
+  const processWrap = document.getElementById('planProcessWrap');
+  if(processWrap){
+    if(processList.length){
+      const groups = groupByRegionOrdered(processList);
+      processWrap.innerHTML = groups.map(g=>{
+        const cardsHtml = g.items.map(p=>{
+          const monthOpts = '<option value="">— เลือกเดือน —</option>' + MONTHS_TH.map(m=>`<option value="${m.v}" ${String(p.openMonth||'').toUpperCase()===m.v?'selected':''}>${m.l}</option>`).join('');
+          const updated = p.updatedAt ? ('บันทึกล่าสุด '+new Date(p.updatedAt).toLocaleString('th-TH')) : '';
+          return `<div class="plan-card card" data-key="${escapeHtml(p.key)}">
+            <div class="plan-card-head">
+              <div>
+                <div class="plan-card-title">${escapeHtml(p.factoryName)||'—'}<span class="plan-type-badge">Type ${escapeHtml(p.type)||'—'}</span></div>
+                <div class="plan-card-sub">จ.${escapeHtml(p.province)||'—'}</div>
+                <div class="plan-card-sub">${escapeHtml(p.company)||'—'}</div>
+              </div>
+              <span class="status-badge" style="background:var(--warn-bg);color:var(--warn);">ON PROCESS</span>
+            </div>
+            <div class="plan-card-row">
+              <label class="flabel">เดือนที่คาดว่าจะเปิดผลิต</label>
+              <select class="plan-month-select">${monthOpts}</select>
+            </div>
+            <div class="plan-card-row">
+              <label class="flabel">ความคืบหน้าการดำเนินการ</label>
+              <textarea class="plan-note-input" rows="3" placeholder="บันทึกความคืบหน้า...">${escapeHtml(p.note)}</textarea>
+            </div>
+            <div class="plan-card-actions">
+              <span class="plan-updated">${updated}</span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-quiet btn-sm plan-save-note">บันทึกความคืบหน้า</button>
+                <button type="button" class="btn btn-ghost btn-sm plan-cancel-btn" style="color:var(--red);">ยกเลิกโครงการ</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+        return `<div class="plan-region-row">
+          <div class="plan-region-title">${escapeHtml(g.region)} <span class="plan-region-count">(${g.items.length})</span></div>
+          <div class="plan-region-cards">${cardsHtml}</div>
+        </div>`;
+      }).join('');
+      processWrap.querySelectorAll('.plan-card').forEach(card=>{
+        const key = card.getAttribute('data-key');
+        card.querySelector('.plan-month-select').addEventListener('change', e=>{
+          planSetOverride(key, {month:e.target.value});
+          showToast('บันทึกเดือนที่คาดว่าจะเปิดแล้ว');
+          renderAll();
+        });
+        card.querySelector('.plan-save-note').addEventListener('click', ()=>{
+          const val = card.querySelector('.plan-note-input').value;
+          planSetOverride(key, {note:val});
+          showToast('บันทึกความคืบหน้าแล้ว');
+          renderAll();
+        });
+        card.querySelector('.plan-cancel-btn').addEventListener('click', ()=>{
+          const name = card.querySelector('.plan-card-title').textContent;
+          if(!confirm('ยืนยันยกเลิกโครงการ "'+name+'" ?')) return;
+          planSetOverride(key, {status:'CANCEL'});
+          showToast('ยกเลิกโครงการแล้ว');
+          renderAll();
+        });
+      });
+    } else {
+      processWrap.innerHTML = '<div class="empty"><div class="big">ไม่มีโรงงานที่กำลังดำเนินการ</div></div>';
+    }
+  }
+
+  const cancelWrap = document.getElementById('planCancelWrap');
+  if(cancelWrap){
+    if(cancelList.length){
+      cancelWrap.innerHTML = cancelList.slice().sort(byRegionSort).map(p=>`
+        <div class="plan-card card cancelled" data-key="${escapeHtml(p.key)}">
+          <div class="plan-card-head">
+            <div>
+              <div class="plan-card-title">${escapeHtml(p.factoryName)||'—'}</div>
+              <div class="plan-card-sub">${escapeHtml(p.company)||'—'} · ${escapeHtml(p.province)||'—'} · ${escapeHtml(p.region)||'—'}</div>
+            </div>
+            <span class="status-badge" style="background:var(--crit-bg);color:var(--crit);">ยกเลิกแล้ว</span>
+          </div>
+          ${p.note ? `<div class="plan-note-view">${escapeHtml(p.note)}</div>` : ''}
+          <div class="plan-card-actions">
+            <span></span>
+            <button type="button" class="btn btn-ghost btn-sm plan-restore-btn">เปิดใช้งานอีกครั้ง</button>
+          </div>
+        </div>`).join('');
+      cancelWrap.querySelectorAll('.plan-card').forEach(card=>{
+        const key = card.getAttribute('data-key');
+        card.querySelector('.plan-restore-btn').addEventListener('click', ()=>{
+          planSetOverride(key, {status:'ON PROCESS'});
+          showToast('เปิดใช้งานโครงการอีกครั้งแล้ว');
+          renderAll();
+        });
+      });
+    } else {
+      cancelWrap.innerHTML = '<div class="empty" style="padding:20px;">ไม่มีโครงการที่ถูกยกเลิก</div>';
+    }
+  }
+}
+
+function openAddPlanModal(){
+  document.getElementById('mTitle').textContent = 'เพิ่มโรงงานใหม่';
+  document.getElementById('mSub').textContent = 'ข้อมูลนี้จะถูกบันทึกไว้ในเบราว์เซอร์นี้และแสดงในหน้าเว็บทันที (ไม่ได้แก้ไฟล์ Plannewplant.xlsx ต้นทาง)';
+  const regionOptions = REGION_ORDER.map(r=>`<option value="${r}">${r}</option>`).join('') + '<option value="__custom">อื่น ๆ (พิมพ์เอง)</option>';
+  const monthOptions = '<option value="">— เลือกเดือน —</option>' + MONTHS_TH.map(m=>`<option value="${m.v}">${m.l}</option>`).join('');
+  const inputStyle = 'width:100%;font-family:\'Sarabun\',sans-serif;font-size:15px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--panel-hi);color:var(--text);';
+  document.getElementById('mBody').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="plan-card-row"><label class="flabel">กิจการ *</label>
+        <select id="addPlanRegion" style="${inputStyle}">${regionOptions}</select>
+        <input type="text" id="addPlanRegionCustom" placeholder="ระบุกิจการ" style="${inputStyle}display:none;margin-top:8px;">
+      </div>
+      <div class="plan-card-row"><label class="flabel">ชื่อโรงงาน *</label><input type="text" id="addPlanFactory" placeholder="เช่น หล่มเก่า" style="${inputStyle}"></div>
+      <div class="plan-card-row"><label class="flabel">บริษัท</label><input type="text" id="addPlanCompany" placeholder="เช่น บจก.วีคอนกรีต" style="${inputStyle}"></div>
+      <div class="plan-card-row"><label class="flabel">จังหวัด</label><input type="text" id="addPlanProvince" placeholder="เช่น เพชรบูรณ์" style="${inputStyle}"></div>
+      <div class="plan-card-row"><label class="flabel">Type</label><input type="text" id="addPlanType" placeholder="เช่น S" style="${inputStyle}"></div>
+      <div class="plan-card-row"><label class="flabel">เดือนที่คาดว่าจะเปิดผลิต</label><select id="addPlanMonth" style="${inputStyle}">${monthOptions}</select></div>
+      <div class="plan-card-row"><label class="flabel">ความคืบหน้า (ถ้ามี)</label><textarea id="addPlanNote" rows="3" placeholder="บันทึกความคืบหน้า..." style="${inputStyle}resize:vertical;"></textarea></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button type="button" class="btn btn-quiet" id="addPlanCancelBtn">ยกเลิก</button>
+      <button type="button" class="btn btn-accent" id="addPlanSaveBtn">บันทึกโครงการ</button>
+    </div>
+  `;
+  document.getElementById('addPlanRegion').addEventListener('change', e=>{
+    document.getElementById('addPlanRegionCustom').style.display = e.target.value==='__custom' ? 'block' : 'none';
+  });
+  document.getElementById('addPlanCancelBtn').addEventListener('click', ()=>document.getElementById('overlay').classList.remove('show'));
+  document.getElementById('addPlanSaveBtn').addEventListener('click', ()=>{
+    const regionSel = document.getElementById('addPlanRegion').value;
+    const region = regionSel==='__custom' ? document.getElementById('addPlanRegionCustom').value.trim() : regionSel;
+    const factoryName = document.getElementById('addPlanFactory').value.trim();
+    if(!factoryName){ showToast('กรุณากรอกชื่อโรงงาน', true); return; }
+    if(!region){ showToast('กรุณาระบุกิจการ', true); return; }
+    addPlanExtraRow({
+      region, factoryName,
+      company: document.getElementById('addPlanCompany').value.trim(),
+      province: document.getElementById('addPlanProvince').value.trim(),
+      type: document.getElementById('addPlanType').value.trim(),
+      openMonth: document.getElementById('addPlanMonth').value,
+      status: 'ON PROCESS',
+      note: document.getElementById('addPlanNote').value.trim()
+    });
+    showToast('เพิ่มโรงงานใหม่แล้ว');
+    document.getElementById('overlay').classList.remove('show');
+    renderAll();
+  });
+  document.getElementById('overlay').classList.add('show');
 }
 
 /* ================= MODAL ================= */
@@ -1457,6 +1863,54 @@ async function downloadExcel(region, topics, expiryDays){
   showToast('ดาวน์โหลดไฟล์ Excel สำเร็จ');
 }
 
+async function downloadPlanExcel(){
+  if(typeof ExcelJS==='undefined'){ showToast('ไม่สามารถโหลดไลบรารีสร้างไฟล์ Excel ได้ กรุณาลองใหม่', true); return; }
+  const recs = computePlanRecords().slice().sort((a,b)=>{
+    const ra=(a.region||''), rb=(b.region||'');
+    if(ra<rb) return -1; if(ra>rb) return 1;
+    const ca=(a.company||''), cb=(b.company||'');
+    if(ca<cb) return -1; if(ca>cb) return 1;
+    return 0;
+  });
+  if(!recs.length){ showToast('ไม่พบข้อมูลแผนโรงงานใหม่ให้ดาวน์โหลด', true); return; }
+
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('PLAN');
+  const header = ['กิจการ','ชื่อโรงงาน','จังหวัด','Type','บริษัท','วันที่คาดว่าจะเปิดผลิต','Status','การดำเนินการ'];
+  ws.addRow(header);
+  recs.forEach(r=>{
+    ws.addRow([r.region||'', r.factoryName||'', r.province||'', r.type||'', r.company||'', r.openMonth||'', r.status||'', r.note||'']);
+  });
+
+  const headerRow = ws.getRow(1);
+  headerRow.eachCell(cell=>{
+    cell.font = {bold:true, color:{argb:'FFFFFFFF'}};
+    cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF20242A'}};
+    cell.alignment = {vertical:'middle', horizontal:'center'};
+  });
+  const thin = {style:'thin', color:{argb:'FFB9B3A5'}};
+  ws.eachRow(row=>{
+    row.eachCell({includeEmpty:true}, cell=>{ cell.border = {top:thin,left:thin,bottom:thin,right:thin}; });
+  });
+  ws.getColumn(1).width = 12;
+  ws.getColumn(2).width = 26;
+  ws.getColumn(3).width = 16;
+  ws.getColumn(4).width = 8;
+  ws.getColumn(5).width = 34;
+  ws.getColumn(6).width = 14;
+  ws.getColumn(7).width = 14;
+  ws.getColumn(8).width = 50;
+  ws.views = [{state:'frozen', ySplit:1}];
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'Plannewplant.xlsx'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('ดาวน์โหลดไฟล์ Plannewplant.xlsx สำเร็จ');
+}
+
 /* ================= EVENTS ================= */
 document.getElementById('exportBtn').addEventListener('click', e=>{
   e.stopPropagation();
@@ -1483,6 +1937,22 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
 });
 document.getElementById('searchBox').addEventListener('input', renderAll);
 document.getElementById('regionFilter').addEventListener('change', renderAll);
+document.getElementById('typeMselBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  document.getElementById('typeMselPanel').classList.toggle('show');
+});
+document.getElementById('typeMselPanel').addEventListener('click', e=>e.stopPropagation());
+document.addEventListener('click', ()=> document.getElementById('typeMselPanel').classList.remove('show'));
+const planRegionFilterEl = document.getElementById('planRegionFilter');
+if(planRegionFilterEl) planRegionFilterEl.addEventListener('change', renderAll);
+const planAddBtnEl = document.getElementById('planAddBtn');
+if(planAddBtnEl) planAddBtnEl.addEventListener('click', openAddPlanModal);
+const planExportBtnEl = document.getElementById('planExportBtn');
+if(planExportBtnEl) planExportBtnEl.addEventListener('click', async ()=>{
+  planExportBtnEl.disabled = true; planExportBtnEl.textContent = 'กำลังสร้างไฟล์...';
+  try{ await downloadPlanExcel(); }
+  finally{ planExportBtnEl.disabled = false; planExportBtnEl.textContent = '⇩ ดาวน์โหลด Excel'; }
+});
 
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
