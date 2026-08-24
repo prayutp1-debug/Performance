@@ -208,6 +208,43 @@
   #tablePlanOpen .pill .d{font-size:15px;}
   #tablePlanOpen .pill .t{font-size:12px;}
   .toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:60;}
+  /* ===== LOGIN GATE ===== */
+  #loginGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:radial-gradient(1200px 600px at 15% -5%, rgba(47,217,196,.10), transparent 60%),
+               radial-gradient(1000px 500px at 100% 0%, rgba(155,123,255,.08), transparent 55%),
+               linear-gradient(180deg,#070A10 0%,#0A0E15 40%,#070A10 100%);}
+  .login-card{width:100%;max-width:400px;padding:28px;position:relative;}
+  .login-gate-close{display:none;position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text-dim);font-size:18px;line-height:1;cursor:pointer;}
+  .login-gate-close:hover{color:var(--text);}
+  .login-gate-close.show{display:block;}
+  .login-brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .login-brand-badge{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:700;color:#071018;font-size:15px;flex:none;}
+  .login-brand-title{font-family:'Kanit',sans-serif;font-size:17px;font-weight:600;}
+  .login-brand-sub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+  .login-field{margin-bottom:14px;}
+  .login-field label{display:block;font-size:12px;color:var(--text-soft);margin-bottom:6px;}
+  .login-field input[type="text"],.login-field input[type="password"]{
+    width:100%;font-family:'Sarabun',sans-serif;font-size:14px;padding:10px 42px 10px 12px;
+    border:1px solid var(--border);border-radius:10px;background:var(--panel-hi);color:var(--text);}
+  .login-field input:focus{outline:none;border-color:var(--teal);}
+  .login-field-hint{font-size:10.5px;color:var(--text-dim);margin-top:5px;}
+  .login-field-wrap{position:relative;}
+  .login-eye-btn{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:8px;
+    background:none;border:none;font-size:14px;color:var(--text-dim);cursor:pointer;opacity:.75;}
+  .login-eye-btn:hover{opacity:1;color:var(--text);}
+  .login-remember{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-soft);cursor:pointer;user-select:none;margin-bottom:14px;}
+  .login-remember input{width:15px;height:15px;accent-color:var(--teal);}
+  .login-msg{font-size:12px;font-weight:600;min-height:16px;margin-bottom:6px;}
+  .login-msg.error{color:var(--red);}
+  .login-msg.success{color:var(--teal);}
+  .login-submit-btn{width:100%;justify-content:center;padding:11px 16px;font-size:14px;}
+  .login-link-row{text-align:center;margin-top:16px;}
+  .login-link-btn{background:none;border:none;color:var(--teal);font-size:12px;font-weight:600;text-decoration:underline;cursor:pointer;padding:0;}
+  .login-reset-note{font-size:10.5px;color:var(--warn);background:var(--warn-bg);border-radius:8px;padding:10px 12px;margin-top:12px;line-height:1.5;}
+  .login-user-chip{font-size:11.5px;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .login-account-actions{display:flex;align-items:center;gap:4px;flex:none;}
+  .login-icon-btn{width:30px;height:30px;border-radius:8px;background:none;border:none;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-dim);cursor:pointer;}
+  .login-icon-btn:hover{background:var(--panel-hi);color:var(--text);}
   .source-note-wrap{position:relative;}
   .source-note-btn{cursor:default;}
   .source-note-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--panel-hi);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);padding:16px;z-index:60;min-width:340px;max-width:440px;}
@@ -221,6 +258,81 @@
 </head>
 <body>
 
+<!-- ============ LOGIN GATE ============ -->
+<div id="loginGate">
+  <div class="card login-card">
+    <button type="button" class="login-gate-close" id="loginGateClose">✕</button>
+    <div class="login-brand">
+      <div class="login-brand-badge">FC</div>
+      <div>
+        <div class="login-brand-title">แดชบอร์ดโรงงานแฟรนไชส์</div>
+        <div class="login-brand-sub">FC Operations Dashboard</div>
+      </div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginFormView">
+      <div class="login-field">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="เช่น preecpol" autocomplete="username">
+        <div class="login-field-hint">ไม่ต้องใส่ @scg.com · พิมพ์ตัวเล็กหรือตัวใหญ่ก็ได้</div>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <div class="login-field-wrap">
+          <input type="password" id="loginPassword" placeholder="รหัสผ่าน" autocomplete="current-password">
+          <button type="button" class="login-eye-btn" data-target="loginPassword">👁</button>
+        </div>
+      </div>
+      <label class="login-remember">
+        <input type="checkbox" id="loginRememberMe"> จดจำฉัน
+      </label>
+      <div class="login-msg error" id="loginError"></div>
+      <div class="login-msg success" id="loginSuccess"></div>
+      <button type="button" class="btn btn-accent login-submit-btn" id="loginSubmit">เข้าสู่ระบบ</button>
+      <div class="login-link-row">
+        <button type="button" class="login-link-btn" id="showResetLink">เปลี่ยนรหัสผ่าน</button>
+      </div>
+    </div>
+
+    <!-- RESET PASSWORD FORM -->
+    <div id="loginResetView" style="display:none;">
+      <div class="login-field">
+        <label>Username</label>
+        <input type="text" id="resetUsername" placeholder="เช่น preecpol" autocomplete="username">
+      </div>
+      <div class="login-field">
+        <label>รหัสผ่านเดิม</label>
+        <div class="login-field-wrap">
+          <input type="password" id="resetOldPassword" placeholder="รหัสผ่านปัจจุบัน" autocomplete="current-password">
+          <button type="button" class="login-eye-btn" data-target="resetOldPassword">👁</button>
+        </div>
+      </div>
+      <div class="login-field">
+        <label>รหัสผ่านใหม่</label>
+        <div class="login-field-wrap">
+          <input type="password" id="resetNewPassword" placeholder="รหัสผ่านใหม่" autocomplete="new-password">
+          <button type="button" class="login-eye-btn" data-target="resetNewPassword">👁</button>
+        </div>
+      </div>
+      <div class="login-field">
+        <label>ยืนยันรหัสผ่านใหม่</label>
+        <div class="login-field-wrap">
+          <input type="password" id="resetConfirmPassword" placeholder="พิมพ์รหัสผ่านใหม่อีกครั้ง" autocomplete="new-password">
+          <button type="button" class="login-eye-btn" data-target="resetConfirmPassword">👁</button>
+        </div>
+      </div>
+      <div class="login-msg error" id="resetError"></div>
+      <div class="login-msg success" id="resetSuccess"></div>
+      <button type="button" class="btn btn-accent login-submit-btn" id="resetSubmit">เปลี่ยนรหัสผ่าน</button>
+      <div class="login-reset-note" id="resetNote">⚠️ กำลังเชื่อมต่อระบบยืนยันตัวตน...</div>
+      <div class="login-link-row">
+        <button type="button" class="login-link-btn" id="showLoginLink">← กลับไปหน้าเข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="accentbar"></div>
 <header class="top">
   <div class="top-row">
@@ -229,6 +341,14 @@
       <p>ฐานข้อมูลหลักอ้างอิงจากไฟล์ OPEN FC เชื่อมโยงกับวงเงินค้ำประกัน (BG), ใบอนุญาต Smart License และสัญญาแฟรนไชส์ ด้วยรหัสโรงงานหรือชื่อ บจก./หจก.</p>
     </div>
     <div class="top-actions">
+      <div style="display:flex;align-items:center;gap:6px;background:var(--panel-hi);border:1px solid var(--border);border-radius:10px;padding:6px 10px;">
+        <span>👤</span>
+        <span class="login-user-chip" id="loginUserChip"></span>
+        <div class="login-account-actions">
+          <button type="button" class="login-icon-btn" id="btnChangePassword" title="เปลี่ยนรหัสผ่าน">🔑</button>
+          <button type="button" class="login-icon-btn" id="btnLogout" title="ออกจากระบบ">🚪</button>
+        </div>
+      </div>
       <div class="source-note-wrap" id="sourceNoteWrap">
         <span class="btn btn-quiet source-note-btn" id="sourceNoteBtn" tabindex="0">ℹ️ แหล่งข้อมูล</span>
         <div class="source-note-panel" id="sourceNotePanel">
@@ -2002,8 +2122,276 @@ document.querySelectorAll('.mini-tabs[data-statustab]').forEach(container=>{
 });
 
 /* ================= INIT ================= */
-(async function init(){
-  await loadAllData();
+function boot(){
+  loadAllData();
+}
+</script>
+
+<script>
+/* ============================================================
+   AUTHENTICATION (client-side login gate)
+   ------------------------------------------------------------
+   Uses the SAME Google Sheet user database as the CPAC Franchise
+   Performance Dashboard / Plant Visit Dashboard, via the same
+   Apps Script Web App (AUTH_API_URL), called through JSONP to
+   avoid CORS issues with Apps Script's redirect-based response.
+   IMPORTANT LIMITATIONS - please read:
+   This is a STATIC HTML file with no backend server of its own.
+   - Passwords are verified against the Google Sheet backend; this
+     file itself never stores plaintext passwords.
+   - "Reset password" writes back to the Google Sheet and applies to
+     every device/browser immediately.
+   ============================================================ */
+const SESSION_KEY = 'fc_auth_session_v1';
+const REMEMBER_KEY = 'fc_remembered_login_v1';
+
+/* Same live Google Sheet backend as the CPAC Franchise Performance
+   Dashboard, so both apps share one set of usernames/passwords. */
+const AUTH_API_URL = 'https://script.google.com/macros/s/AKfycbxSOm4Mjmb1iYmLavAioYfSlGzZu2UOdcph6XR5zWdV_Cp5dW8NHysfDfPI1_HGMGmU/exec';
+
+function jsonpRequest(params){
+  return new Promise((resolve, reject)=>{
+    const cbName = 'fcAuthCallback_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    const cleanup = ()=>{
+      clearTimeout(timer);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    };
+    const timer = setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, 30000);
+    window[cbName] = (data)=>{ cleanup(); resolve(data); };
+    const qs = Object.keys(params).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(params[k])).join('&');
+    const script = document.createElement('script');
+    script.src = AUTH_API_URL + '?' + qs + '&callback=' + cbName;
+    script.onerror = ()=>{ cleanup(); reject(new Error('script_load_error')); };
+    document.body.appendChild(script);
+  });
+}
+async function apiCall(action, payload){
+  try{
+    return await jsonpRequest({ action, ...payload });
+  }catch(err){
+    console.warn('First attempt to Auth API failed, retrying once...', err.message);
+    return await jsonpRequest({ action, ...payload });
+  }
+}
+async function apiLogin(username, password){
+  return apiCall('login', { username, password });
+}
+async function apiResetPassword(username, oldPassword, newPassword){
+  return apiCall('resetPassword', { username, oldPassword, newPassword });
+}
+
+function normalizeUsername(raw){
+  let u = (raw||'').trim().toLowerCase();
+  u = u.replace(/@scg\.com$/i, '');
+  return u;
+}
+
+function getSession(){
+  try{ return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+  catch(e){ return null; }
+}
+function saveSession(username, name){
+  try{ localStorage.setItem(SESSION_KEY, JSON.stringify({username, name, at: new Date().toISOString()})); }catch(e){}
+}
+function clearSession(){
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+}
+function getRemembered(){
+  try{ return JSON.parse(localStorage.getItem(REMEMBER_KEY) || 'null'); }
+  catch(e){ return null; }
+}
+function saveRemembered(username, password){
+  try{ localStorage.setItem(REMEMBER_KEY, JSON.stringify({username, password})); }catch(e){}
+}
+function clearRemembered(){
+  try{ localStorage.removeItem(REMEMBER_KEY); }catch(e){}
+}
+function prefillLoginForm(){
+  const r = getRemembered();
+  const cb = document.getElementById('loginRememberMe');
+  if(r && r.username){
+    document.getElementById('loginUsername').value = r.username;
+    document.getElementById('loginPassword').value = r.password || '';
+    if(cb) cb.checked = true;
+  } else if(cb) cb.checked = false;
+}
+
+let currentLoggedInUsername = null;
+
+function showApp(username, name){
+  currentLoggedInUsername = username;
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('loginUserChip').textContent = name || username;
+  boot();
+}
+function showLoginError(msg){
+  document.getElementById('loginError').textContent = msg;
+  document.getElementById('loginSuccess').textContent = '';
+}
+function showLoginSuccess(msg){
+  document.getElementById('loginSuccess').textContent = msg;
+  document.getElementById('loginError').textContent = '';
+}
+function showResetError(msg){
+  document.getElementById('resetError').textContent = msg;
+  document.getElementById('resetSuccess').textContent = '';
+}
+function showResetSuccess(msg){
+  document.getElementById('resetSuccess').textContent = msg;
+  document.getElementById('resetError').textContent = '';
+}
+let inAppPasswordChangeMode = false;
+
+function closeLoginGateOverlay(){
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('loginGateClose').classList.remove('show');
+  document.getElementById('loginResetView').style.display = 'none';
+  document.getElementById('loginFormView').style.display = 'block';
+  showResetError(''); showResetSuccess('');
+}
+function backToLoginAfterReset(username){
+  document.getElementById('resetOldPassword').value = '';
+  document.getElementById('resetNewPassword').value = '';
+  document.getElementById('resetConfirmPassword').value = '';
+  if(inAppPasswordChangeMode){
+    inAppPasswordChangeMode = false;
+    closeLoginGateOverlay();
+    return;
+  }
+  document.getElementById('loginResetView').style.display = 'none';
+  document.getElementById('loginFormView').style.display = 'block';
+  document.getElementById('loginUsername').value = username;
+  document.getElementById('loginPassword').value = '';
+  showLoginSuccess('เปลี่ยนรหัสผ่านสำเร็จ! กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่');
+}
+
+document.getElementById('loginSubmit').addEventListener('click', async ()=>{
+  showLoginError('');
+  const rawU = document.getElementById('loginUsername').value;
+  const pw = document.getElementById('loginPassword').value;
+  const username = normalizeUsername(rawU);
+  const rememberMe = document.getElementById('loginRememberMe').checked;
+  if(!username || !pw){ showLoginError('กรุณากรอก Username และ Password'); return; }
+  const btn = document.getElementById('loginSubmit');
+  btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+  try{
+    let result;
+    try{
+      result = await apiLogin(username, pw);
+    }catch(err){
+      console.error('Auth API error', err);
+      showLoginError('เชื่อมต่อระบบยืนยันตัวตนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
+    if(!result.ok){
+      showLoginError(result.error === 'user_not_found' ? 'ไม่พบชื่อผู้ใช้นี้ในระบบ' : 'รหัสผ่านไม่ถูกต้อง');
+      return;
+    }
+    saveSession(result.username || username, result.name);
+    if(rememberMe) saveRemembered(result.username || username, pw); else clearRemembered();
+    showApp(result.username || username, result.name);
+  } finally {
+    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+  }
+});
+
+document.getElementById('loginPassword').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('loginSubmit').click();
+});
+document.getElementById('loginUsername').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('loginPassword').focus();
+});
+
+document.querySelectorAll('.login-eye-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    if(!target) return;
+    const showing = target.type === 'text';
+    target.type = showing ? 'password' : 'text';
+    btn.textContent = showing ? '👁' : '🙈';
+  });
+});
+
+document.getElementById('showResetLink').addEventListener('click', ()=>{
+  document.getElementById('loginFormView').style.display = 'none';
+  document.getElementById('loginResetView').style.display = 'block';
+  document.getElementById('resetUsername').value = normalizeUsername(document.getElementById('loginUsername').value);
+  showResetError(''); showResetSuccess('');
+});
+document.getElementById('showLoginLink').addEventListener('click', ()=>{
+  if(inAppPasswordChangeMode){
+    inAppPasswordChangeMode = false;
+    closeLoginGateOverlay();
+    return;
+  }
+  document.getElementById('loginResetView').style.display = 'none';
+  document.getElementById('loginFormView').style.display = 'block';
+  showLoginError('');
+});
+
+document.getElementById('resetSubmit').addEventListener('click', async ()=>{
+  showResetError(''); showResetSuccess('');
+  const username = normalizeUsername(document.getElementById('resetUsername').value);
+  const oldPw = document.getElementById('resetOldPassword').value;
+  const newPw = document.getElementById('resetNewPassword').value;
+  const confirmPw = document.getElementById('resetConfirmPassword').value;
+  if(!username || !oldPw || !newPw || !confirmPw){ showResetError('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return; }
+  if(newPw !== confirmPw){ showResetError('รหัสผ่านใหม่และการยืนยันไม่ตรงกัน'); return; }
+  if(newPw.length < 4){ showResetError('รหัสผ่านใหม่ควรมีความยาวอย่างน้อย 4 ตัวอักษร'); return; }
+  const btn = document.getElementById('resetSubmit');
+  btn.disabled = true; btn.textContent = 'กำลังดำเนินการ...';
+  try{
+    let result;
+    try{
+      result = await apiResetPassword(username, oldPw, newPw);
+    }catch(err){
+      console.error('Auth API error', err);
+      showResetError('เชื่อมต่อระบบยืนยันตัวตนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
+    if(!result.ok){
+      const msg = result.error === 'user_not_found' ? 'ไม่พบชื่อผู้ใช้นี้ในระบบ'
+        : result.error === 'wrong_old_password' ? 'รหัสผ่านเดิมไม่ถูกต้อง'
+        : result.error === 'weak_new_password' ? 'รหัสผ่านใหม่สั้นเกินไป'
+        : 'เปลี่ยนรหัสผ่านไม่สำเร็จ';
+      showResetError(msg);
+      return;
+    }
+    showResetSuccess('เปลี่ยนรหัสผ่านสำเร็จ! บันทึกลง Google Sheet เรียบร้อย มีผลกับทุกอุปกรณ์ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่');
+    if(getRemembered()) saveRemembered(username, newPw);
+    backToLoginAfterReset(username);
+  } finally {
+    btn.disabled = false; btn.textContent = 'เปลี่ยนรหัสผ่าน';
+  }
+});
+
+document.getElementById('btnLogout').addEventListener('click', ()=>{
+  clearSession();
+  location.reload();
+});
+document.getElementById('btnChangePassword').addEventListener('click', ()=>{
+  inAppPasswordChangeMode = true;
+  document.getElementById('loginGate').style.display = 'flex';
+  document.getElementById('loginGateClose').classList.add('show');
+  document.getElementById('loginFormView').style.display = 'none';
+  document.getElementById('loginResetView').style.display = 'block';
+  document.getElementById('resetUsername').value = currentLoggedInUsername || '';
+  document.getElementById('resetOldPassword').value = '';
+  document.getElementById('resetNewPassword').value = '';
+  document.getElementById('resetConfirmPassword').value = '';
+  showResetError(''); showResetSuccess('');
+});
+document.getElementById('loginGateClose').addEventListener('click', ()=>{
+  inAppPasswordChangeMode = false;
+  closeLoginGateOverlay();
+});
+
+/* ---------------- auth init ---------------- */
+(function initAuth(){
+  const note = document.getElementById('resetNote');
+  if(note) note.innerHTML = '✅ ระบบนี้เชื่อมต่อกับ Google Sheet โดยตรง — การเปลี่ยนรหัสผ่านจะถูกบันทึกจริงและมีผลกับทุกอุปกรณ์ทันที';
+  prefillLoginForm();
 })();
 </script>
 </body>
